@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'pages/HomePage.dart';
-import 'pages/SpinWheelPage.dart';
-import 'pages/LeaderboardPage.dart';
-import 'pages/ProfilePage.dart';
+import 'pages/home_page.dart';
+import 'pages/spin_wheel_page.dart';
+import 'pages/leaderboard_page.dart';
+import 'pages/profile_page.dart';
 
 // Refined color palette
 const Color bgColor = Color(0xFF56858B);       // teal background
