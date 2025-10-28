@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'login_page.dart';
 import '../main.dart';
+import '../theme/colors.dart';
+import '../utilities/messages.dart';
 
 class SignupPage extends StatelessWidget {
   SignupPage({super.key});
@@ -11,7 +13,16 @@ class SignupPage extends StatelessWidget {
   final TextEditingController telephoneController = TextEditingController();
 
   void _signup(BuildContext context) {
-    // TODO: Add real authentication later
+    String email = emailController.text.trim();
+    String username = usernameController.text.trim();
+    String password = passwordController.text.trim();
+    String telephone = telephoneController.text.trim();
+
+    if (email.isEmpty || username.isEmpty || password.isEmpty || telephone.isEmpty) {
+      showMessage(context, "Please enter all required fields", type: MessageType.error);
+      return;
+    }
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const MainPage(title: 'PointBetting Home Page')),
@@ -28,68 +39,87 @@ class SignupPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: AppColors.bgColor,
       appBar: AppBar(title: const Text("Sign Up")),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: "Email",
-                filled: true,
-                fillColor: whiteColor,
-              ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Sign Up for PointBetting',
+                  style: const TextStyle(color: AppColors.goldColor, fontSize: 50),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 40),
+                TextField(
+                  controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  style: const TextStyle(fontSize: 20),
+                  decoration: const InputDecoration(
+                    labelText: "Email",
+                    labelStyle: TextStyle(fontSize: 18),
+                    filled: true,
+                    fillColor: AppColors.whiteColor,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: usernameController,
+                  style: const TextStyle(fontSize: 20),
+                  decoration: const InputDecoration(
+                    labelText: "Username",
+                    labelStyle: TextStyle(fontSize: 18),
+                    filled: true,
+                    fillColor: AppColors.whiteColor,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: passwordController,
+                  obscureText: true,
+                  style: const TextStyle(fontSize: 20),
+                  decoration: const InputDecoration(
+                    labelText: "Password",
+                    labelStyle: TextStyle(fontSize: 18),
+                    filled: true,
+                    fillColor: AppColors.whiteColor,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: telephoneController,
+                  keyboardType: TextInputType.phone,
+                  style: const TextStyle(fontSize: 20),
+                  decoration: const InputDecoration(
+                    labelText: "Telephone",
+                    labelStyle: TextStyle(fontSize: 18),
+                    filled: true,
+                    fillColor: AppColors.whiteColor,
+                  ),
+                ),
+                const SizedBox(height: 35),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => _signup(context),
+                    child: const Text("Sign Up", style: TextStyle(fontSize: 18)),
+                  ),
+                ),
+                const SizedBox(height: 15),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => _backToLogin(context),
+                    child: const Text("Back to Login", style: TextStyle(fontSize: 18)),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 15),
-            TextField(
-              controller: usernameController,
-              decoration: const InputDecoration(
-                labelText: "Username",
-                filled: true,
-                fillColor: whiteColor,
-              ),
-            ),
-            const SizedBox(height: 15),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: "Password",
-                filled: true,
-                fillColor: whiteColor,
-              ),
-            ),
-            const SizedBox(height: 15),
-            TextField(
-              controller: telephoneController,
-              keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(
-                labelText: "Telephone",
-                filled: true,
-                fillColor: whiteColor,
-              ),
-            ),
-            const SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: () => _signup(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: whiteColor,
-              ),
-              child: const Text("Sign Up"),
-            ),
-            const SizedBox(height: 15),
-            ElevatedButton(
-              onPressed: () => _backToLogin(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: whiteColor,
-              ),
-              child: const Text("Back to Login"),
-            )
-          ],
+          ),
         ),
       ),
     );
