@@ -40,13 +40,13 @@ namespace DotNet8Authentication.Controllers
         public async Task<IActionResult> GetLeaderboard()
         {
             var leaderboard = await _db.Users
-                .OrderByDescending(u => u.Points)
+                .OrderByDescending(user => user.Points)
                 .Take(10)
-                .Select(u => new
+                .Select(user => new
                 {
-                    u.Id,
-                    u.UserName,
-                    u.Points
+                    user.Id,
+                    user.UserName,
+                    user.Points
                 })
                 .ToListAsync();
             return Ok(leaderboard);
