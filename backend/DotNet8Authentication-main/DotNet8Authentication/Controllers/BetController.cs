@@ -33,7 +33,8 @@ namespace DotNet8Authentication.Controllers
                 UserId = Guid.Parse(userId),
                 Subject = dto.Subject,
                 Points = dto.Points,
-                Deadline = dto.Deadline
+                Deadline = dto.Deadline,
+                CorrectAnswer = null
             };
             _db.Bets.Add(bet);
             await _db.SaveChangesAsync();
