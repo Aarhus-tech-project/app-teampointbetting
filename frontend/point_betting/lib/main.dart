@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'pages/home_page.dart';
-import 'pages/spin_wheel_page.dart';
+import 'pages/spin_the_wheel_page.dart';
 import 'pages/leaderboard_page.dart';
 import 'pages/profile_page.dart';
+import 'pages/login_page.dart';
 
 // Refined color palette
 const Color bgColor = Color(0xFF56858B);       // teal background
@@ -39,7 +40,7 @@ class MyApp extends StatelessWidget {
           foregroundColor: whiteColor,
         ),
       ),
-      home: const MainPage(title: 'PointBetting Home Page'),
+      home: LoginPage(),
     );
   }
 }
@@ -57,7 +58,7 @@ class _MainPageState extends State<MainPage> {
 
   final List<Widget> _pages = const [
     HomePage(),
-    SpinWheelPage(),
+    SpinTheWheelPage(),
     LeaderboardPage(),
     ProfilePage(),
   ];
@@ -82,7 +83,7 @@ class _MainPageState extends State<MainPage> {
         backgroundColor: accentBlue,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.casino), label: "Spin Wheel"),
+          BottomNavigationBarItem(icon: Icon(Icons.casino), label: "Spin The Wheel"),
           BottomNavigationBarItem(icon: Icon(Icons.leaderboard), label: "Leaderboard"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
         ],
