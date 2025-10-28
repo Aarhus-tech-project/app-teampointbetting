@@ -1,82 +1,75 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DotNet8Authentication.Data;
+using DotNet8Authentication.DTO;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace DotNet8Authentication.Controllers
 {
-    public class BetController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    public class BetController : ControllerBase
     {
-        // GET: BetController
-        public ActionResult Index()
+        private readonly DataContext _db;
+
+        public BetController(DataContext db)
         {
-            return View();
+            _db = db;
         }
 
-        // GET: BetController/Details/5
-        public ActionResult Details(int id)
+        [HttpPost("create")]
+        [Authorize]
+        public async Task<IActionResult> CreateBet([FromBody] CreateBetDto dto)
         {
-            return View();
-        }
-
-        // GET: BetController/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: BetController/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
-        {
-            try
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
             {
-                return RedirectToAction(nameof(Index));
+                return Unauthorized();
             }
-            catch
+
+            var bet = new Models.Bet
             {
-                return View();
-            }
+                BetId = Guid.NewGuid(),
+                UserId = Guid.Parse(userId),
+                Subject = dto.Subject,
+                Points = dto.Points,
+                Deadline = dto.Deadline
+            };
+            _db.Bets.Add(bet);
+            await _db.SaveChangesAsync();
+            return Ok(bet);
+
         }
 
-        // GET: BetController/Edit/5
-        public ActionResult Edit(int id)
+        [HttpPut("set-result")]
+        public async Task<IActionResult> SetBetResult([FromBody] UpdateBetResultDto dto)
         {
-            return View();
+            var bet = await _db.Bets.FirstOrDefaultAsync(b => b.BetId == dto.BetId);
+            if (bet == null)
+            {
+                return NotFound();
+            }
+            bet.CorrectAnswer = dto.CorrectAnswer;
+            await _db.SaveChangesAsync();
+            return Ok(bet);
         }
 
-        // POST: BetController/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        [HttpGet]
+        public async Task<IActionResult> GetBets()
         {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            var bets = await _db.Bets.ToListAsync();
+            return Ok(bets);
         }
 
-        // GET: BetController/Delete/5
-        public ActionResult Delete(int id)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetBet(int id)
         {
-            return View();
-        }
-
-        // POST: BetController/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
+            var bet = await _db.Bets.FindAsync(id);
+            if (bet == null)
             {
-                return RedirectToAction(nameof(Index));
+                return NotFound();
             }
-            catch
-            {
-                return View();
-            }
+            return Ok(bet);
         }
     }
 }
