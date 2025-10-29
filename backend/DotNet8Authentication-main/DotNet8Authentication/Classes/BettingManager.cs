@@ -14,36 +14,50 @@ namespace DotNet8Authentication.Classes
 
         public async Task<bool> EvaluateAndPayoutBetAsync(Guid betId, string winningAnswer)
         {
-            var answers = await _db.BetAnswers
+            var getAllBetAnswers = await _db.BetAnswers
                 .Where(a => a.BetId == betId)
                 .ToListAsync();
 
-            var userIds = answers.Select(a => a.UserId.ToString()).Distinct().ToList();
+            if (!getAllBetAnswers.Any())
+                return false;
+
+            var userIds = getAllBetAnswers.Select(a => a.UserId.ToString()).Distinct().ToList();
 
             var users = await _db.Users
                 .Where(u => userIds.Contains(u.Id))
                 .ToDictionaryAsync(u => u.Id);
 
-            bool hadWinners = false;
+            var winners = getAllBetAnswers.Where(a => a.Answer.Equals(winningAnswer, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            var losers = getAllBetAnswers.Except(winners).ToList();
 
-            foreach (var answer in answers)
+            if (!winners.Any())
+                return false;
+
+            var totalLoserPoints = losers.Sum(l => l.BettedPoints);
+            var rewardPerWinner = totalLoserPoints / winners.Count;
+
+            //For the winners
+            foreach (var answer in winners)
             {
                 if (users.TryGetValue(answer.UserId.ToString(), out var user))
                 {
-                    if (answer.Answer.Equals(winningAnswer, StringComparison.OrdinalIgnoreCase))
-                    {
-                        Console.WriteLine("You won!");
-                        hadWinners = true;
-                    }
+                    user.Points += answer.BettedPoints + rewardPerWinner;
                 }
             }
 
-            if (hadWinners)
+            //For the losers
+            foreach (var answer in losers)
             {
-                await _db.SaveChangesAsync();
+                if (users.TryGetValue(answer.UserId.ToString(), out var user))
+                {
+                    user.Points -= answer.BettedPoints;
+                }
             }
 
-            return hadWinners;
+            await _db.SaveChangesAsync();
+
+            return true;
         }
     }
 }
