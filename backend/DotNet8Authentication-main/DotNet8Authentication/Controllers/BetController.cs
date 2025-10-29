@@ -33,7 +33,7 @@ namespace DotNet8Authentication.Controllers
                 return Unauthorized();
             }
 
-            var bet = new Models.Bet
+            var bet = new Bet
             {
                 BetId = Guid.NewGuid(),
                 UserId = Guid.Parse(userId),
