@@ -1,10 +1,5 @@
 import 'package:flutter/material.dart';
-
-const Color bgColor = Color(0xFF56858B);
-const Color accentBlue = Color(0xFF001EFF);
-const Color redColor = Color(0xFFD20202);
-const Color goldColor = Color(0xFFA58D00);
-const Color whiteColor = Color(0xFFFFFFFF);
+import '../theme/colors.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,20 +18,20 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: AppColors.bgColor,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               'You have pressed the button:',
-              style: const TextStyle(color: whiteColor, fontSize: 20),
+              style: const TextStyle(color: AppColors.whiteColor, fontSize: 20),
             ),
             const SizedBox(height: 12),
             Text(
               '$_counter',
               style: const TextStyle(
-                color: redColor,
+                color: AppColors.redColor,
                 fontSize: 48,
                 fontWeight: FontWeight.bold,
               ),

@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-
-const Color bgColor = Color(0xFF56858B);
-const Color goldColor = Color(0xFFA58D00);
-const Color whiteColor = Color(0xFFFFFFFF);
+import '../theme/colors.dart';
 
 class SpinTheWheelPage extends StatelessWidget {
   const SpinTheWheelPage({super.key});
@@ -10,16 +7,16 @@ class SpinTheWheelPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: AppColors.bgColor,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: const [
-            Icon(Icons.casino, size: 80, color: goldColor),
+            Icon(Icons.casino, size: 80, color: AppColors.goldColor),
             SizedBox(height: 20),
             Text(
               'Spin the Wheel!',
-              style: TextStyle(color: whiteColor, fontSize: 28),
+              style: TextStyle(color: AppColors.whiteColor, fontSize: 28),
             ),
           ],
         ),

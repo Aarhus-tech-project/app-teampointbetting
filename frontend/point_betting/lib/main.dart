@@ -4,14 +4,7 @@ import 'pages/spin_the_wheel_page.dart';
 import 'pages/leaderboard_page.dart';
 import 'pages/profile_page.dart';
 import 'pages/login_page.dart';
-
-// Refined color palette
-const Color bgColor = Color(0xFF56858B);       // teal background
-const Color accentBlue = Color(0xFF001EFF);    // AppBar & FAB
-const Color goldColor = Color(0xFFA58D00);     // selected items
-const Color redColor = Color(0xFFD20202);      // counters/alerts
-const Color whiteColor = Color(0xFFFFFFFF);    // text
-const Color white70 = Color(0xB3FFFFFF);       // unselected
+import 'theme/colors.dart';
 
 void main() {
   runApp(const MyApp());
@@ -25,19 +18,19 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'PointBetting',
       theme: ThemeData(
-        scaffoldBackgroundColor: bgColor,
+        scaffoldBackgroundColor: AppColors.bgColor,
         appBarTheme: const AppBarTheme(
-          backgroundColor: accentBlue,
-          foregroundColor: whiteColor,
+          backgroundColor: AppColors.accentBlue,
+          foregroundColor: AppColors.whiteColor,
         ),
         bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-          backgroundColor: accentBlue,
-          selectedItemColor: goldColor,
-          unselectedItemColor: white70,
+          backgroundColor: AppColors.accentBlue,
+          selectedItemColor: AppColors.goldColor,
+          unselectedItemColor: AppColors.white70,
         ),
         floatingActionButtonTheme: const FloatingActionButtonThemeData(
-          backgroundColor: accentBlue,
-          foregroundColor: whiteColor,
+          backgroundColor: AppColors.accentBlue,
+          foregroundColor: AppColors.whiteColor,
         ),
       ),
       home: LoginPage(),
@@ -78,9 +71,9 @@ class _MainPageState extends State<MainPage> {
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         onTap: _onTabTapped,
-        selectedItemColor: goldColor,
-        unselectedItemColor: white70,
-        backgroundColor: accentBlue,
+        selectedItemColor: AppColors.goldColor,
+        unselectedItemColor: AppColors.white70,
+        backgroundColor: AppColors.accentBlue,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.casino), label: "Spin The Wheel"),
