@@ -63,11 +63,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseCors("AllowFlutterApp");
-app.MapIdentityApi<User>();
-
 app.UseHttpsRedirection();
 
+app.UseCors("AllowFlutterApp");
+
+app.MapIdentityApi<User>();
 app.UseAuthorization();
 
 app.MapControllers();
