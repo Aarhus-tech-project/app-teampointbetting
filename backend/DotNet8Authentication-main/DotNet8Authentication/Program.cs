@@ -36,10 +36,10 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy
-                .WithOrigins("http://localhost:49798")
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials();
+            .SetIsOriginAllowed(origin => true) // For dev only!
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
         });
 });
 var app = builder.Build();
@@ -63,11 +63,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseHttpsRedirection();
+else
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseCors("AllowFlutterApp");
 
 app.MapIdentityApi<User>();
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
