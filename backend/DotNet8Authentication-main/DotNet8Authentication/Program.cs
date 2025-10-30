@@ -30,7 +30,18 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddIdentityApiEndpoints<User>()
     .AddEntityFrameworkStores<DataContext>();
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFlutterApp",
+        policy =>
+        {
+            policy
+                .WithOrigins("http://localhost:49798")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        });
+});
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
@@ -52,7 +63,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseCors("AllowFlutterApp");
 app.MapIdentityApi<User>();
 
 app.UseHttpsRedirection();
