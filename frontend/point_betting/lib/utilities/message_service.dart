@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/colors.dart';
 
-enum MessageType { error, info }
+enum MessageType { error, info, success }
 
 void showMessage(BuildContext context, String message, {MessageType type = MessageType.info}) {
   Color backgroundColor;
@@ -12,6 +12,9 @@ void showMessage(BuildContext context, String message, {MessageType type = Messa
       break;
     case MessageType.info:
       backgroundColor = AppColors.white70;
+      break;
+    case MessageType.success:
+      backgroundColor = AppColors.goldColor;
       break;
   }
 

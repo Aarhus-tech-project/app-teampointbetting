@@ -5,13 +5,21 @@ import 'pages/leaderboard_page.dart';
 import 'pages/profile_page.dart';
 import 'pages/login_page.dart';
 import 'theme/colors.dart';
+import 'utilities/auth_service.dart';
 
-void main() {
-  runApp(const MyApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Check token validity before launching the app
+  final bool valid = await AuthService.isTokenValid();
+
+  runApp(MyApp(isLoggedIn: valid));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isLoggedIn;
+
+  const MyApp({super.key, required this.isLoggedIn});
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +41,9 @@ class MyApp extends StatelessWidget {
           foregroundColor: AppColors.whiteColor,
         ),
       ),
-      home: LoginPage(),
+      home: isLoggedIn
+          ? const MainPage(title: 'PointBetting Home Page')
+          : LoginPage(),
     );
   }
 }

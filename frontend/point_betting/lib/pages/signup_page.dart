@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'login_page.dart';
-import '../main.dart';
 import '../theme/colors.dart';
-import '../utilities/messages.dart';
+import '../utilities/message_service.dart';
+import '../utilities/auth_service.dart';
 
 class SignupPage extends StatelessWidget {
   SignupPage({super.key});
@@ -12,21 +12,30 @@ class SignupPage extends StatelessWidget {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController telephoneController = TextEditingController();
 
-  void _signup(BuildContext context) {
+  void _signup(BuildContext context) async {
     String email = emailController.text.trim();
-    String username = usernameController.text.trim();
+    // String username = usernameController.text.trim();
     String password = passwordController.text.trim();
-    String telephone = telephoneController.text.trim();
+    // String telephone = telephoneController.text.trim();
 
-    if (email.isEmpty || username.isEmpty || password.isEmpty || telephone.isEmpty) {
+    if (email.isEmpty || password.isEmpty) {
       showMessage(context, "Please enter all required fields", type: MessageType.error);
       return;
     }
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const MainPage(title: 'PointBetting Home Page')),
+    final result = await AuthService.register(
+      email: email,
+      password: password,
     );
+
+    if (!context.mounted) return;
+
+    if (result["success"]) {
+      showMessage(context, result["message"], type: MessageType.success);
+      _backToLogin(context);
+    } else {
+      showMessage(context, result["message"], type: MessageType.error);
+    }
   }
 
   void _backToLogin(BuildContext context) {
@@ -66,17 +75,17 @@ class SignupPage extends StatelessWidget {
                     fillColor: AppColors.whiteColor,
                   ),
                 ),
-                const SizedBox(height: 20),
-                TextField(
-                  controller: usernameController,
-                  style: const TextStyle(fontSize: 20),
-                  decoration: const InputDecoration(
-                    labelText: "Username",
-                    labelStyle: TextStyle(fontSize: 18),
-                    filled: true,
-                    fillColor: AppColors.whiteColor,
-                  ),
-                ),
+                // const SizedBox(height: 20),
+                // TextField(
+                //   controller: usernameController,
+                //   style: const TextStyle(fontSize: 20),
+                //   decoration: const InputDecoration(
+                //     labelText: "Username",
+                //     labelStyle: TextStyle(fontSize: 18),
+                //     filled: true,
+                //     fillColor: AppColors.whiteColor,
+                //   ),
+                // ),
                 const SizedBox(height: 20),
                 TextField(
                   controller: passwordController,
@@ -89,18 +98,18 @@ class SignupPage extends StatelessWidget {
                     fillColor: AppColors.whiteColor,
                   ),
                 ),
-                const SizedBox(height: 20),
-                TextField(
-                  controller: telephoneController,
-                  keyboardType: TextInputType.phone,
-                  style: const TextStyle(fontSize: 20),
-                  decoration: const InputDecoration(
-                    labelText: "Telephone",
-                    labelStyle: TextStyle(fontSize: 18),
-                    filled: true,
-                    fillColor: AppColors.whiteColor,
-                  ),
-                ),
+                // const SizedBox(height: 20),
+                // TextField(
+                //   controller: telephoneController,
+                //   keyboardType: TextInputType.phone,
+                //   style: const TextStyle(fontSize: 20),
+                //   decoration: const InputDecoration(
+                //     labelText: "Telephone",
+                //     labelStyle: TextStyle(fontSize: 18),
+                //     filled: true,
+                //     fillColor: AppColors.whiteColor,
+                //   ),
+                // ),
                 const SizedBox(height: 35),
                 SizedBox(
                   width: double.infinity,

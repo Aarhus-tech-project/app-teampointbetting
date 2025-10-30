@@ -1,17 +1,12 @@
 import 'package:flutter/material.dart';
-import 'login_page.dart';
+import 'package:point_betting/utilities/auth_service.dart';
 import '../theme/colors.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
   void _logout(BuildContext context) {
-    // TODO: Push LoginPage and remove history so back button won't return to Profile
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => LoginPage()),
-      (route) => false,
-    );
+    AuthService.logout(context);
   }
 
   @override

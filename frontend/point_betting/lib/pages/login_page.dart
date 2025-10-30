@@ -2,24 +2,38 @@ import 'package:flutter/material.dart';
 import '../main.dart';
 import 'signup_page.dart';
 import '../theme/colors.dart';
-import '../utilities/messages.dart';
+import '../utilities/message_service.dart';
+import '../utilities/auth_service.dart';
 
 class LoginPage extends StatelessWidget {
   LoginPage({super.key});
 
-  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  void _login(BuildContext context) {
-    String username = usernameController.text.trim();
+  void _login(BuildContext context) async {
+    String email = emailController.text.trim();
     String password = passwordController.text.trim();
 
-    if (username.isEmpty || password.isEmpty) {
-      showMessage(context, "Please enter both username and password", type: MessageType.error);
+    if (email.isEmpty || password.isEmpty) {
+      showMessage(context, "Please enter both email and password", type: MessageType.error);
       return;
     }
 
-    // TODO: Add real authentication later
+    final result = await AuthService.login(
+      email: email,
+      password: password,
+    );
+
+    if (!context.mounted) return;
+
+    if (result["success"]) {
+      showMessage(context, result["message"], type: MessageType.success);
+    } else {
+      showMessage(context, result["message"], type: MessageType.error);
+      return;
+    }
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const MainPage(title: 'PointBetting Home Page')),
@@ -54,10 +68,12 @@ class LoginPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 40),
                   TextField(
-                    controller: usernameController,
+                    controller: emailController,
+                    keyboardType: TextInputType.emailAddress,
                     style: const TextStyle(fontSize: 20),
                     decoration: const InputDecoration(
-                      labelText: "Username",
+                      labelText: "Email",
+                      labelStyle: TextStyle(fontSize: 18),
                       filled: true,
                       fillColor: AppColors.whiteColor,
                     ),
