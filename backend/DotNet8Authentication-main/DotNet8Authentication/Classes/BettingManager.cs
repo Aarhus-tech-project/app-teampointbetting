@@ -37,7 +37,7 @@ namespace DotNet8Authentication.Classes
             var totalLoserPoints = losers.Sum(l => l.BettedPoints);
             var rewardPerWinner = totalLoserPoints / winners.Count;
 
-            //For the winners
+            //winners reward
             foreach (var answer in winners)
             {
                 if (users.TryGetValue(answer.UserId.ToString(), out var user))
@@ -46,7 +46,7 @@ namespace DotNet8Authentication.Classes
                 }
             }
 
-            //For the losers
+            //losers fine
             foreach (var answer in losers)
             {
                 if (users.TryGetValue(answer.UserId.ToString(), out var user))

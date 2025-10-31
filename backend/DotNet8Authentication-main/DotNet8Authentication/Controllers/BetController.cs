@@ -1,6 +1,6 @@
-﻿using DotNet8Authentication.Classes;
-using DotNet8Authentication.Data;
+﻿using DotNet8Authentication.Data;
 using DotNet8Authentication.DTO;
+using DotNet8Authentication.Interfaces;
 using DotNet8Authentication.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -15,12 +15,16 @@ namespace DotNet8Authentication.Controllers
     {
         private readonly DataContext _db;
         private readonly UserManager<User> _userManager;
-        private readonly BettingManager _bettingManager;
+        private readonly IBettingManager _bettingManager;
+        private readonly IBetStatsService _betStatsService;
 
-        public BetController(DataContext db, UserManager<User> userManager)
+        public BetController(DataContext db, UserManager<User> userManager, IBettingManager bettingManager, IBetStatsService betStatsService)
         {
             _db = db;
             _userManager = userManager;
+            _bettingManager = bettingManager;
+            _betStatsService = betStatsService;
+
         }
 
         [HttpPost("create")]
@@ -46,6 +50,25 @@ namespace DotNet8Authentication.Controllers
 
         }
 
+        [HttpGet("{betId}/totals")]
+        public async Task<IActionResult> GetBetTotals(Guid betId)
+        {
+            var bet = await _db.Bets.FirstOrDefaultAsync(b => b.BetId == betId);
+            if (bet == null)
+            {
+                return NotFound();
+            }
+
+            var (totalYes, totalNo) = await _betStatsService.GetBetTotalsAsync(betId);
+            return Ok(new
+            {
+                bet.BetId,
+                bet.Subject,
+                totalYes,
+                totalNo
+            });
+        }
+
         [HttpPut("set-result"), Authorize]
         public async Task<IActionResult> SetBetResult([FromBody] UpdateBetResultDto dto)
         {
@@ -58,6 +81,7 @@ namespace DotNet8Authentication.Controllers
             {
                 return NotFound();
             }
+
             if (bet.UserId != Guid.Parse(user.Id))
             {
                 return Forbid("Only the creator of the bet can set the result.");
@@ -93,7 +117,7 @@ namespace DotNet8Authentication.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetBet(int id)
+        public async Task<IActionResult> GetBet(Guid id)
         {
             var bet = await _db.Bets.FindAsync(id);
             if (bet == null)

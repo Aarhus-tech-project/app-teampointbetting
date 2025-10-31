@@ -1,5 +1,9 @@
+using DotNet8Authentication.Classes;
 using DotNet8Authentication.Data;
+using DotNet8Authentication.Hubs;
+using DotNet8Authentication.Interfaces;
 using DotNet8Authentication.Models;
+using DotNet8Authentication.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
@@ -27,6 +31,10 @@ builder.Services.AddDbContext<DataContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Database")));
 
 builder.Services.AddAuthorization();
+
+builder.Services.AddScoped<IBettingManager, BettingManager>();
+builder.Services.AddScoped<IBetStatsService, BetStatsService>();
+builder.Services.AddSignalR();
 
 builder.Services.AddIdentityApiEndpoints<User>()
     .AddEntityFrameworkStores<DataContext>();
@@ -75,5 +83,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
+app.MapHub<BetHub>("/bethub");
 app.Run();
