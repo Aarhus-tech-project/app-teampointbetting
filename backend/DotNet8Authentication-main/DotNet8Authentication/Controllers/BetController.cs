@@ -98,7 +98,19 @@ namespace DotNet8Authentication.Controllers
 
             foreach (var bet in bets)
             {
-                var (totalYes, totalNo, totalAll) = await _betStatsService.GetBetTotalsAsync(bet.BetId);
+                var (totalYesPoints, totalNoPoints) = await _betStatsService.GetBetTotalsAsync(bet.BetId);
+
+                var totalYesPersons = await _db.BetAnswers
+                    .Where(a => a.BetId == bet.BetId && a.Answer.ToLower() == "yes")
+                    .Select(a => a.UserId)
+                    .Distinct()
+                    .CountAsync();
+
+                var totalNoPersons = await _db.BetAnswers
+                    .Where(a => a.BetId == bet.BetId && a.Answer.ToLower() == "no")
+                    .Select(a => a.UserId)
+                    .Distinct()
+                    .CountAsync();
 
                 result.Add(new
                 {
@@ -106,9 +118,10 @@ namespace DotNet8Authentication.Controllers
                     bet.UserId,
                     bet.Subject,
                     bet.Deadline,
-                    totalAll,
-                    totalYes,
-                    totalNo
+                    totalYesPoints,
+                    totalYesPersons,
+                    totalNoPoints,
+                    totalNoPersons
                 });
             }
             return Ok(result);
