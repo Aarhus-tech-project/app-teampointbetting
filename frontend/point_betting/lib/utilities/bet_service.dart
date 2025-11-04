@@ -54,12 +54,12 @@ class BetService {
         "success": true,
         "data": jsonDecode(response.body)
       };
-    } else {
-      return {
-        "success": false,
-        "message": "Failed to fetch bets. Please try again."
-      };
     }
+
+    return {
+      "success": false,
+      "message": "Failed to fetch bets. Please try again."
+    };
   }
 
   static Future<Map<String, dynamic>> createBet({
@@ -89,12 +89,12 @@ class BetService {
         "success": true,
         "message": "Bet created successfully"
       };
-    } else {
-      return {
-        "success": false,
-        "message": "Failed to create bet. Please try again."
-      };
-    }
+    } 
+
+    return {
+      "success": false,
+      "message": "Failed to create bet. Please try again."
+    };
   }
 
   static Future<Map<String, dynamic>> answerBet({
@@ -112,7 +112,7 @@ class BetService {
       url,
       headers: {
         "Content-Type": "application/json",
-        "Authorization": accessToken,
+        "Authorization": "Bearer ${accessToken.replaceAll('Bearer ', '')}",
       },
       body: jsonEncode({
         "betId": betId,
@@ -121,16 +121,54 @@ class BetService {
       }),
     );
 
+    if (response.statusCode == 401 || response.statusCode == 403) {
+      return {
+        "success": false,
+        "message": "Forbidden, you have already answered this bet."
+      };
+    }
+
     if (response.statusCode == 200) {
       return {
         "success": true,
         "message": "Answered bet successfully"
       };
-    } else {
+    }
+
+    return {
+      "success": false,
+      "message": "Failed to answer bet. Please try again."
+    };
+  }
+
+  static Future<Map<String, dynamic>> getUserAnswers({
+    required String userId
+  }) async {
+    final tokenResult = await _getValidAccessToken();
+    if (tokenResult["success"] != true) return tokenResult;
+
+    final accessToken = tokenResult["accessToken"];
+
+    final url = Uri.parse("$_baseUrl/api/BetAnswer/$userId");
+    final response = await http.get(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer ${accessToken.replaceAll('Bearer ', '')}",
+      },
+    );
+
+    if (response.statusCode == 200) {
       return {
-        "success": false,
-        "message": "Failed to answer bet. Please try again."
+        "success": true,
+        "data": jsonDecode(response.body)
       };
     }
+
+    return {
+      "success": false,
+      "message": "Failed to fetch user answers. Please try again."
+    };
   }
+
 }

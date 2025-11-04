@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:point_betting/utilities/bet_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/colors.dart';
 import '../utilities/message_service.dart';
 
@@ -14,11 +15,14 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   bool _isLoading = false;
   List<dynamic> _bets = [];
+  List<dynamic> _filteredBets = [];
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _loadBets();
+    _searchController.addListener(_filterBets);
   }
 
   Future<void> _loadBets() async {
@@ -27,15 +31,45 @@ class _HomePageState extends State<HomePage> {
     });
 
     final result = await BetService.fetchBets();
+    final prefs = await SharedPreferences.getInstance();
+    final joinedBets = prefs.getStringList('joinedBets') ?? [];
 
     setState(() {
-      _isLoading = false;
       if (result["success"] == true) {
         _bets = result["data"];
+        _bets = _bets.where((bet) {
+          final deadlineStr = bet["deadline"];
+          if (deadlineStr == null) return false;
+
+          final deadlineUtc = DateTime.parse(deadlineStr).toUtc();
+          final nowUtc = DateTime.now().toUtc().add(Duration(hours: 1)); // Adjust for UTC+1
+
+          final isBetPastDeadline = deadlineUtc.isBefore(nowUtc);
+
+          final betId = bet["betId"].toString();
+          final isBetAlreadyJoined = joinedBets.contains(betId);
+
+          return !isBetPastDeadline && !isBetAlreadyJoined;
+        }).toList();
+        _filterBets();
       } else {
         showMessage(context, result["message"], type: MessageType.error);
         _bets = []; 
       }
+      _isLoading = false;
+    });
+  }
+
+  void _filterBets() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredBets = _bets
+          .where((bet) =>
+              (bet["subject"] ?? "")
+                  .toString()
+                  .toLowerCase()
+                  .contains(query))
+          .toList();
     });
   }
 
@@ -225,7 +259,7 @@ class _HomePageState extends State<HomePage> {
                   return;
                 }
                 Navigator.pop(context);
-                _joinBet(bet["id"], "Yes", points);
+                _joinBet(bet["betId"], "Yes", points);
               },
               child: const Text("Yes"),
             ),
@@ -240,7 +274,7 @@ class _HomePageState extends State<HomePage> {
                   return;
                 }
                 Navigator.pop(context);
-                _joinBet(bet["id"], "No", points);
+                _joinBet(bet["betId"], "No", points);
               },
               child: const Text("No"),
             ),
@@ -249,7 +283,6 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
-
 
   Future<void> _joinBet(String betId, String answer, int bettedPoints) async {
     final answerResult = await BetService.answerBet(betId: betId, answer: answer, bettedPoints: bettedPoints);
@@ -271,54 +304,112 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: AppColors.bgColor,
         title: const Text("Bets", style: TextStyle(color: AppColors.whiteColor)),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: AppColors.goldColor),
-            onPressed: _loadBets,
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: TextField(
+              controller: _searchController,
+              style: const TextStyle(color: AppColors.whiteColor),
+              decoration: InputDecoration(
+                hintText: "Search bets...",
+                hintStyle: const TextStyle(color: AppColors.white70),
+                prefixIcon: const Icon(Icons.search, color: AppColors.goldColor),
+                filled: true,
+                fillColor: AppColors.accentBlue,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.goldColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.goldColor, width: 2),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: RefreshIndicator(
+              color: AppColors.goldColor,
+              backgroundColor: AppColors.bgColor,
+              onRefresh: _loadBets,
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(color: AppColors.goldColor),
+                    )
+                  : _filteredBets.isEmpty
+                      ? ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          children: const [
+                            SizedBox(height: 250),
+                            Center(
+                              child: Text(
+                                "No bets found.",
+                                style: TextStyle(color: AppColors.whiteColor),
+                              ),
+                            ),
+                          ],
+                        )
+                      : ListView.builder(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          itemCount: _filteredBets.length,
+                          itemBuilder: (context, index) {
+                            final bet = _filteredBets[index];
+                            final subject = bet["subject"] ?? "Unknown";
+                            final deadline = bet["deadline"];
+                            final formattedDate = deadline != null
+                                ? DateFormat("yyyy-MM-dd HH:mm")
+                                    .format(DateTime.parse(deadline))
+                                : "No deadline";
+
+                            return Card(
+                              color: AppColors.goldColor,
+                              margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              child: ListTile(
+                                title: Text(
+                                  subject,
+                                  style: const TextStyle(color: AppColors.whiteColor, fontSize: 18),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Deadline: $formattedDate",
+                                      style: const TextStyle(color: AppColors.redColor),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      "Yes: ${bet["totalYesPersons"] ?? 0} people (${bet["totalYesPoints"] ?? 0} points)",
+                                      style: const TextStyle(color: AppColors.whiteColor),
+                                    ),
+                                    Text(
+                                      "No: ${bet["totalNoPersons"] ?? 0} people (${bet["totalNoPoints"] ?? 0} points)",
+                                      style: const TextStyle(color: AppColors.whiteColor),
+                                    ),
+                                  ],
+                                ),
+                                onTap: () => _joinBetDialog(bet),
+                              ),
+                            );
+
+                          },
+                        ),
+            ),
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.goldColor))
-          : _bets.isEmpty
-              ? Center(
-                  child: Text(
-                    "No bets available.",
-                    style: const TextStyle(color: AppColors.whiteColor),
-                  ),
-                )
-              : ListView.builder(
-                  itemCount: _bets.length,
-                  itemBuilder: (context, index) {
-                    final bet = _bets[index];
-                    final subject = bet["subject"] ?? "Unknown";
-                    final deadline = bet["deadline"];
-                    final formattedDate = deadline != null
-                        ? DateFormat("yyyy-MM-dd HH:mm").format(DateTime.parse(deadline))
-                        : "No deadline";
-
-                    return Card(
-                      color: AppColors.goldColor,
-                      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      child: ListTile(
-                        title: Text(
-                          subject,
-                          style: const TextStyle(color: AppColors.whiteColor, fontSize: 18),
-                        ),
-                        subtitle: Text(
-                          "Deadline: $formattedDate",
-                          style: const TextStyle(color: AppColors.redColor),
-                        ),
-                        onTap: () => _joinBetDialog(bet),
-                      ),
-                    );
-                  },
-                ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showCreateBetDialog,
         backgroundColor: AppColors.accentBlue,
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 }
