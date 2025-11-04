@@ -19,7 +19,7 @@ class SignupPage extends StatelessWidget {
     // String telephone = telephoneController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      showMessage(context, "Please enter all required fields", type: MessageType.error);
+      showMessage(context, "Please enter both email and password", type: MessageType.error);
       return;
     }
 
