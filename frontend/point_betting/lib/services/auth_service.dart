@@ -165,4 +165,33 @@ class AuthService {
       (route) => false,
     );
   }
+
+  static Future<Map<String, dynamic>> getValidAccessToken() async {
+    bool isValid = await isTokenValid();
+
+    if (!isValid) {
+      final refreshResult = await refreshToken();
+      if (refreshResult["success"] != true) {
+        return {
+          "success": false,
+          "message": "Session expired. Please log in again.",
+          "accessToken": null
+        };
+      }
+    }
+
+    final String? accessToken = await getAccessToken();
+    if (accessToken == null) {
+      return {
+        "success": false,
+        "message": "No access token found. Please log in.",
+        "accessToken": null
+      };
+    }
+
+    return {
+      "success": true,
+      "accessToken": accessToken,
+    };
+  }
 }

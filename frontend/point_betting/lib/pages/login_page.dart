@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../main.dart';
 import 'signup_page.dart';
 import '../theme/colors.dart';
-import '../utilities/message_service.dart';
-import '../utilities/auth_service.dart';
+import '../services/message_service.dart';
+import '../services/auth_service.dart';
 
 class LoginPage extends StatelessWidget {
   LoginPage({super.key});

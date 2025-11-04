@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:point_betting/utilities/bet_service.dart';
+import 'package:point_betting/services/bet_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/colors.dart';
-import '../utilities/message_service.dart';
+import '../services/message_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

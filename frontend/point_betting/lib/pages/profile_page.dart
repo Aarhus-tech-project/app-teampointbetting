@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:point_betting/utilities/auth_service.dart';
+import 'package:point_betting/services/auth_service.dart';
 import '../theme/colors.dart';
 
 class ProfilePage extends StatelessWidget {
