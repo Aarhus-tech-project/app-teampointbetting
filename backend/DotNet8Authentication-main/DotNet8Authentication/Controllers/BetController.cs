@@ -50,25 +50,6 @@ namespace DotNet8Authentication.Controllers
 
         }
 
-        [HttpGet("{betId}/totals")]
-        public async Task<IActionResult> GetBetTotals(Guid betId)
-        {
-            var bet = await _db.Bets.FirstOrDefaultAsync(b => b.BetId == betId);
-            if (bet == null)
-            {
-                return NotFound();
-            }
-
-            var (totalYes, totalNo) = await _betStatsService.GetBetTotalsAsync(betId);
-            return Ok(new
-            {
-                bet.BetId,
-                bet.Subject,
-                totalYes,
-                totalNo
-            });
-        }
-
         [HttpPut("set-result"), Authorize]
         public async Task<IActionResult> SetBetResult([FromBody] UpdateBetResultDto dto)
         {
@@ -113,7 +94,24 @@ namespace DotNet8Authentication.Controllers
         public async Task<IActionResult> GetBets()
         {
             var bets = await _db.Bets.ToListAsync();
-            return Ok(bets);
+            var result = new List<object>();
+
+            foreach (var bet in bets)
+            {
+                var (totalYes, totalNo, totalAll) = await _betStatsService.GetBetTotalsAsync(bet.BetId);
+
+                result.Add(new
+                {
+                    bet.BetId,
+                    bet.UserId,
+                    bet.Subject,
+                    bet.Deadline,
+                    totalAll,
+                    totalYes,
+                    totalNo
+                });
+            }
+            return Ok(result);
         }
 
         [HttpGet("{id}")]

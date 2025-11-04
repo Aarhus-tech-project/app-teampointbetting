@@ -17,29 +17,32 @@ namespace DotNet8Authentication.Services
             _hubContext = hubContext;
         }
 
-        public async Task<(int totalYes, int totalNo)> GetBetTotalsAsync(Guid betId)
+        public async Task<(int totalYes, int totalNo, int totalAll)> GetBetTotalsAsync(Guid betId)
         {
             var allAnswers = await _db.BetAnswers
                 .Where(a => a.BetId == betId)
                 .ToListAsync();
 
-            var totalYes = allAnswers
+            int totalYes = allAnswers
                 .Where(a => a.Answer.Equals("yes", StringComparison.OrdinalIgnoreCase))
                 .Sum(a => a.BettedPoints);
 
-            var totalNo = allAnswers
+            int totalNo = allAnswers
                 .Where(a => a.Answer.Equals("no", StringComparison.OrdinalIgnoreCase))
                 .Sum(a => a.BettedPoints);
+
+            int totalAll = totalYes + totalNo;
 
             await _hubContext.Clients.Group(betId.ToString())
                 .SendAsync("UpdateBetTotals", new
                 {
                     betId,
+                    totalAll,
                     totalYes,
                     totalNo
                 });
 
-            return (totalYes, totalNo);
+            return (totalYes, totalNo, totalAll);
         }
     }
 }
