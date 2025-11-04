@@ -24,7 +24,28 @@ namespace DotNet8Authentication.Controllers
             _betStatsService = betStatsService;
         }
 
-        [HttpPost, Authorize]
+        [HttpGet("userId")]
+        [Authorize]
+        public async Task<IActionResult> GetAllUserAnswers(Guid userId)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+                return Unauthorized();
+
+            if (Guid.Parse(currentUser.Id) != userId)
+            {
+                return Forbid();
+            }
+
+            var userAnswers = await _context.BetAnswers
+                .Where(ba => ba.UserId == userId)
+                .ToListAsync();
+
+            return Ok(userAnswers);
+        }
+
+        [HttpPost]
+        [Authorize]
         public async Task<IActionResult> SubmitAnswer([FromBody] CreateBetAnswerDto dto)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -45,19 +66,19 @@ namespace DotNet8Authentication.Controllers
 
             if (bet.UserId == userId)
             {
-                return Forbid("You cannot bet on your own bet.");
+                return Forbid();
             }
 
             if (DateTime.UtcNow >= bet.Deadline)
             {
-                return Forbid("Deadline already reached. Cannot bet on this bet anymore.");
+                return Forbid();
             }
             var existingBet = await _context.BetAnswers
                 .AnyAsync(ba => ba.BetId == dto.BetId && ba.UserId == userId);
 
             if (existingBet)
             {
-                return Forbid("You have already betted.");
+                return Forbid();
             }
 
             var betAnswer = new BetAnswer

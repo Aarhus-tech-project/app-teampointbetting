@@ -17,17 +17,17 @@ namespace DotNet8Authentication.Services
             _hubContext = hubContext;
         }
 
-        public async Task<(int totalYes, int totalNo)> GetBetTotalsAsync(Guid betId)
+        public async Task<(int totalYesPoints, int totalNoPoints)> GetBetTotalsAsync(Guid betId)
         {
             var allAnswers = await _db.BetAnswers
                 .Where(a => a.BetId == betId)
                 .ToListAsync();
 
-            var totalYes = allAnswers
+            int totalYesPoints = allAnswers
                 .Where(a => a.Answer.Equals("yes", StringComparison.OrdinalIgnoreCase))
                 .Sum(a => a.BettedPoints);
 
-            var totalNo = allAnswers
+            int totalNoPoints = allAnswers
                 .Where(a => a.Answer.Equals("no", StringComparison.OrdinalIgnoreCase))
                 .Sum(a => a.BettedPoints);
 
@@ -35,11 +35,11 @@ namespace DotNet8Authentication.Services
                 .SendAsync("UpdateBetTotals", new
                 {
                     betId,
-                    totalYes,
-                    totalNo
+                    totalYesPoints,
+                    totalNoPoints
                 });
 
-            return (totalYes, totalNo);
+            return (totalYesPoints, totalNoPoints);
         }
     }
 }

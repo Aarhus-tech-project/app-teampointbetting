@@ -50,25 +50,6 @@ namespace DotNet8Authentication.Controllers
 
         }
 
-        [HttpGet("{betId}/totals")]
-        public async Task<IActionResult> GetBetTotals(Guid betId)
-        {
-            var bet = await _db.Bets.FirstOrDefaultAsync(b => b.BetId == betId);
-            if (bet == null)
-            {
-                return NotFound();
-            }
-
-            var (totalYes, totalNo) = await _betStatsService.GetBetTotalsAsync(betId);
-            return Ok(new
-            {
-                bet.BetId,
-                bet.Subject,
-                totalYes,
-                totalNo
-            });
-        }
-
         [HttpPut("set-result"), Authorize]
         public async Task<IActionResult> SetBetResult([FromBody] UpdateBetResultDto dto)
         {
@@ -113,13 +94,43 @@ namespace DotNet8Authentication.Controllers
         public async Task<IActionResult> GetBets()
         {
             var bets = await _db.Bets.ToListAsync();
-            return Ok(bets);
+            var result = new List<object>();
+
+            foreach (var bet in bets)
+            {
+                var (totalYesPoints, totalNoPoints) = await _betStatsService.GetBetTotalsAsync(bet.BetId);
+
+                var totalYesPersons = await _db.BetAnswers
+                    .Where(a => a.BetId == bet.BetId && a.Answer.ToLower() == "yes")
+                    .Select(a => a.UserId)
+                    .Distinct()
+                    .CountAsync();
+
+                var totalNoPersons = await _db.BetAnswers
+                    .Where(a => a.BetId == bet.BetId && a.Answer.ToLower() == "no")
+                    .Select(a => a.UserId)
+                    .Distinct()
+                    .CountAsync();
+
+                result.Add(new
+                {
+                    bet.BetId,
+                    bet.UserId,
+                    bet.Subject,
+                    bet.Deadline,
+                    totalYesPoints,
+                    totalYesPersons,
+                    totalNoPoints,
+                    totalNoPersons
+                });
+            }
+            return Ok(result);
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetBet(Guid id)
+        [HttpGet("betId")]
+        public async Task<IActionResult> GetBet(Guid betId)
         {
-            var bet = await _db.Bets.FindAsync(id);
+            var bet = await _db.Bets.FindAsync(betId);
             if (bet == null)
             {
                 return NotFound();

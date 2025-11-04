@@ -2,6 +2,6 @@
 {
     public interface IBetStatsService
     {
-        Task<(int totalYes, int totalNo)> GetBetTotalsAsync(Guid betId);
+        Task<(int totalYesPoints, int totalNoPoints)> GetBetTotalsAsync(Guid betId);
     }
 }
