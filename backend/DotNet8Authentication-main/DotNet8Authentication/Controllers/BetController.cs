@@ -127,10 +127,10 @@ namespace DotNet8Authentication.Controllers
             return Ok(result);
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetBet(Guid id)
+        [HttpGet("betId")]
+        public async Task<IActionResult> GetBet(Guid betId)
         {
-            var bet = await _db.Bets.FindAsync(id);
+            var bet = await _db.Bets.FindAsync(betId);
             if (bet == null)
             {
                 return NotFound();

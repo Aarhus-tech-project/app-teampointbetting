@@ -24,7 +24,28 @@ namespace DotNet8Authentication.Controllers
             _betStatsService = betStatsService;
         }
 
-        [HttpPost, Authorize]
+        [HttpGet("userId")]
+        [Authorize]
+        public async Task<IActionResult> GetAllUserAnswers(Guid userId)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+                return Unauthorized();
+
+            if (Guid.Parse(currentUser.Id) != userId)
+            {
+                return Forbid();
+            }
+
+            var userAnswers = await _context.BetAnswers
+                .Where(ba => ba.UserId == userId)
+                .ToListAsync();
+
+            return Ok(userAnswers);
+        }
+
+        [HttpPost]
+        [Authorize]
         public async Task<IActionResult> SubmitAnswer([FromBody] CreateBetAnswerDto dto)
         {
             var user = await _userManager.GetUserAsync(User);
