@@ -45,19 +45,19 @@ namespace DotNet8Authentication.Controllers
 
             if (bet.UserId == userId)
             {
-                return Forbid("You cannot bet on your own bet.");
+                return Forbid();
             }
 
             if (DateTime.UtcNow >= bet.Deadline)
             {
-                return Forbid("Deadline already reached. Cannot bet on this bet anymore.");
+                return Forbid();
             }
             var existingBet = await _context.BetAnswers
                 .AnyAsync(ba => ba.BetId == dto.BetId && ba.UserId == userId);
 
             if (existingBet)
             {
-                return Forbid("You have already betted.");
+                return Forbid();
             }
 
             var betAnswer = new BetAnswer
