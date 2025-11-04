@@ -73,15 +73,16 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseHttpsRedirection();
+    //app.UseHttpsRedirection();
 }
 
 app.UseCors("AllowFlutterApp");
 
 app.MapIdentityApi<User>();
+app.MapControllers();
+app.MapHub<BetHub>("/bethub");
+
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
-app.MapHub<BetHub>("/bethub");
 app.Run();
