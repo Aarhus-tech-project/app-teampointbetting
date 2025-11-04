@@ -9,7 +9,6 @@ using Microsoft.EntityFrameworkCore;
 namespace DotNet8Authentication.Controllers
 {
     [ApiController]
-    [Authorize]
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
@@ -23,6 +22,7 @@ namespace DotNet8Authentication.Controllers
         }
 
         [HttpGet("get-info")]
+        [Authorize]
         public async Task<IActionResult> GetUser()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -40,6 +40,7 @@ namespace DotNet8Authentication.Controllers
         }
 
         [HttpPost("add-info")]
+        [Authorize]
         public async Task<IActionResult> PostUserInfo(CreateUserInfoDto dto)
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -72,6 +73,7 @@ namespace DotNet8Authentication.Controllers
         }
 
         [HttpGet("leaderboard")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetLeaderboard()
         {
             var user = await _userManager.GetUserAsync(User);
