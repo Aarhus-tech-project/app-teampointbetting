@@ -63,12 +63,6 @@ namespace DotNet8Authentication.Controllers
                 return NotFound("Bet not found.");
             }
 
-
-            if (bet.UserId == userId)
-            {
-                return Forbid();
-            }
-
             if (DateTime.UtcNow >= bet.Deadline)
             {
                 return Forbid();
