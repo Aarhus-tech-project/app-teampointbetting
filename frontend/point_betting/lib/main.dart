@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:point_betting/models/global_user.dart';
+import 'package:point_betting/services/message_service.dart';
+import 'package:point_betting/services/user_service.dart';
 import 'pages/home_page.dart';
 import 'pages/spin_the_wheel_page.dart';
 import 'pages/leaderboard_page.dart';
@@ -24,6 +27,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'PointBetting',
       theme: ThemeData(
         scaffoldBackgroundColor: AppColors.bgColor,
@@ -66,16 +70,59 @@ class _MainPageState extends State<MainPage> {
     ProfilePage(),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _getUserInfo();
+  }
+
   void _onTabTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
 
+  void _getUserInfo() async {
+    final fetchUserResult = await UserService.fetchUserInfo();
+    if (fetchUserResult["success"] != true) {
+      if (!mounted) return;
+      showMessage(context, fetchUserResult["message"], type: MessageType.error);
+    }
+    setState(() {
+      UserService.setGlobalUserInfo();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
+      appBar: AppBar(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              GlobalUser.userName,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+            Row(
+              children: [
+                Text(
+                  "${GlobalUser.points}",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+                const Icon(Icons.attach_money, color: AppColors.goldColor),
+              ],
+            ),
+          ],
+        ),
+        centerTitle: false,
+      ),
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,

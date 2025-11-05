@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:point_betting/models/global_user.dart';
 import 'package:point_betting/services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserService {
   static const String _baseUrl = "http://192.168.102.2:5000";
 
-  Future<Map<String, dynamic>> fetchUserInfo() async {
+  static Future<Map<String, dynamic>> fetchUserInfo() async {
     final tokenResult = await AuthService.getValidAccessToken();
     if (tokenResult["success"] != true) return tokenResult;
 
@@ -36,24 +37,21 @@ class UserService {
     };
   }
 
-  Future<Map<String, dynamic>> getCachedUserInfo() async {
+  static Future<void> setGlobalUserInfo() async {
     final prefs = await SharedPreferences.getInstance();
     final userInfoString = prefs.getString('user_info');
-
     if (userInfoString != null) {
-      return {
-        "success": true,
-        "data": jsonDecode(userInfoString)
-      };
-    }
+      final userInfo = jsonDecode(userInfoString);
 
-    return {
-      "success": false,
-      "message": "No cached user info found."
-    };
+      GlobalUser.id = userInfo["id"] ?? '';
+      GlobalUser.userName = userInfo["userName"] ?? '';
+      GlobalUser.email = userInfo["email"] ?? '';
+      GlobalUser.points = userInfo["points"] ?? 0;
+      GlobalUser.phoneNumber = userInfo["phoneNumber"] ?? '';
+    }
   }
 
-  Future<Map<String, dynamic>> fetchLeaderboard() async {
+  static Future<Map<String, dynamic>> fetchLeaderboard() async {
     final tokenResult = await AuthService.getValidAccessToken();
     if (tokenResult["success"] != true) return tokenResult;
 

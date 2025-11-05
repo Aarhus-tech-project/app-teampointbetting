@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:point_betting/models/global_user.dart';
 import 'package:point_betting/services/bet_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/colors.dart';
 import '../services/message_service.dart';
 
@@ -31,8 +31,7 @@ class _HomePageState extends State<HomePage> {
     });
 
     final result = await BetService.fetchBets();
-    final prefs = await SharedPreferences.getInstance();
-    final joinedBets = prefs.getStringList('joinedBets') ?? [];
+    final joinedBets = await BetService.getUserAnswers();
 
     setState(() {
       if (result["success"] == true) {
@@ -47,7 +46,7 @@ class _HomePageState extends State<HomePage> {
           final isBetPastDeadline = deadlineUtc.isBefore(nowUtc);
 
           final betId = bet["betId"].toString();
-          final isBetAlreadyJoined = joinedBets.contains(betId);
+          final isBetAlreadyJoined = joinedBets.containsValue(betId);
 
           return !isBetPastDeadline && !isBetAlreadyJoined;
         }).toList();
@@ -285,12 +284,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _joinBet(String betId, String answer, int bettedPoints) async {
+    if (bettedPoints > GlobalUser.points) {
+      showMessage(context, "You don't have enough points to bet with", type: MessageType.error);
+      return;
+    }
+    
     final answerResult = await BetService.answerBet(betId: betId, answer: answer, bettedPoints: bettedPoints);
 
     if (!mounted) return;
 
     if (answerResult["success"] == true) {
       showMessage(context, answerResult["message"], type: MessageType.success);
+      setState(() {
+        GlobalUser.points -= bettedPoints;
+      });
     } else {
       showMessage(context, answerResult["message"], type: MessageType.error);
     }

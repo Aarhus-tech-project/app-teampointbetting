@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:point_betting/models/global_user.dart';
 import 'package:point_betting/services/message_service.dart';
 import 'package:point_betting/services/user_service.dart';
 import '../theme/colors.dart';
@@ -25,7 +26,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       _isLoading = true;
     });
 
-    final result = await UserService().fetchLeaderboard();
+    final result = await UserService.fetchLeaderboard();
 
     setState(() {
       if (result["success"] == true) {
@@ -78,7 +79,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                       final points = user["points"] ?? 0;
 
                       return Card(
-                        color: AppColors.goldColor,
+                        color: user["userName"] == GlobalUser.userName ? AppColors.redColor : AppColors.goldColor,
                         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         child: ListTile(
                           leading: CircleAvatar(
@@ -92,9 +93,15 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                             username,
                             style: const TextStyle(color: AppColors.whiteColor, fontSize: 18),
                           ),
-                          trailing: Text(
-                            "$points pts",
-                            style: const TextStyle(color: AppColors.whiteColor, fontSize: 16),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                "$points",
+                                style: const TextStyle(color: AppColors.whiteColor, fontSize: 16),
+                              ),
+                              Icon(Icons.attach_money, color: user["userName"] == GlobalUser.userName ? AppColors.goldColor : AppColors.redColor)
+                            ],
                           ),
                         ),
                       );

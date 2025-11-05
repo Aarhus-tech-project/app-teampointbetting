@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:point_betting/services/user_service.dart';
 import '../main.dart';
 import 'signup_page.dart';
 import '../theme/colors.dart';
@@ -29,6 +30,7 @@ class LoginPage extends StatelessWidget {
 
     if (result["success"]) {
       showMessage(context, result["message"], type: MessageType.success);
+      _saveUserInfo(context);
     } else {
       showMessage(context, result["message"], type: MessageType.error);
       return;
@@ -38,6 +40,16 @@ class LoginPage extends StatelessWidget {
       context,
       MaterialPageRoute(builder: (context) => const MainPage(title: 'PointBetting Home Page')),
     );
+  }
+
+  void _saveUserInfo(BuildContext context) async {
+    final userInfoResult = await UserService.fetchUserInfo();
+
+    if (userInfoResult["success"] != true) {
+      if (!context.mounted) return;
+      showMessage(context, userInfoResult["message"], type: MessageType.error);
+      return;
+    }
   }
 
   void _signup(BuildContext context) {
