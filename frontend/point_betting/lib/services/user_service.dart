@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:point_betting/models/global_http.dart';
 import 'package:point_betting/models/global_user.dart';
 import 'package:point_betting/services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserService {
-  static const String _baseUrl = "http://192.168.102.2:5000";
+  static const String _baseUrl = GlobalHttp.baseUrl;
 
   static Future<Map<String, dynamic>> fetchUserInfo() async {
     final tokenResult = await AuthService.getValidAccessToken();

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:point_betting/models/global_http.dart';
 import 'package:point_betting/pages/login_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  static const String _baseUrl = "http://192.168.102.2:5000";
+  static const String _baseUrl = GlobalHttp.baseUrl;
   static const String _tokenKey = "access_token";
   static const String _refreshKey = "refresh_token";
   static const String _expiryKey = "expires_at";
