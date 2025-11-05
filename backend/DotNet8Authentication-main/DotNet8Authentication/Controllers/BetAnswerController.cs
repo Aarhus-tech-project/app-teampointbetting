@@ -90,7 +90,14 @@ namespace DotNet8Authentication.Controllers
                 BettedPoints = dto.BettedPoints,
                 SubmittedAt = DateTime.UtcNow
             };
-
+            if (user.Points != 0 && dto.BettedPoints <= user.Points)
+            {
+                user.Points -= dto.BettedPoints;
+            }
+            else
+            {
+                return Forbid();
+            }
             _context.BetAnswers.Add(betAnswer);
             await _context.SaveChangesAsync();
             await _betStatsService.GetBetTotalsAsync(dto.BetId);
