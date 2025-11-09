@@ -45,7 +45,7 @@ class MyApp extends StatelessWidget {
           foregroundColor: AppColors.whiteColor,
         ),
       ),
-      home: isLoggedIn
+      home: !isLoggedIn
           ? const MainPage(title: 'PointBetting Home Page')
           : LoginPage(),
     );

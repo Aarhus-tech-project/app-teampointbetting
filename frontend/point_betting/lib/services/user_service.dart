@@ -51,6 +51,40 @@ class UserService {
       GlobalUser.phoneNumber = userInfo["phoneNumber"] ?? '';
     }
   }
+  
+  static Future<Map<String, dynamic>> updateUserProfile() async {
+    final tokenResult = await AuthService.getValidAccessToken();
+    if (tokenResult["success"] != true) return tokenResult;
+
+    final accessToken = tokenResult["accessToken"];
+
+    final url = Uri.parse("$_baseUrl/api/User/update-profile");
+    final response = await http.put(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer ${accessToken.replaceAll('Bearer ', '')}",
+      },
+      body: jsonEncode({
+        "userName": GlobalUser.userName,
+        "email": GlobalUser.email,
+        "phoneNumber": GlobalUser.phoneNumber,
+        "points": GlobalUser.points,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return {
+        "success": true,
+        "message": "Profile updated successfully."
+      };
+    }
+
+    return {
+      "success": false,
+      "message": "Failed to update profile. Please try again."
+    };
+  }
 
   static Future<Map<String, dynamic>> fetchLeaderboard() async {
     final tokenResult = await AuthService.getValidAccessToken();
