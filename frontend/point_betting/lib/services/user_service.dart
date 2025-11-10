@@ -58,8 +58,8 @@ class UserService {
 
     final accessToken = tokenResult["accessToken"];
 
-    final url = Uri.parse("$_baseUrl/api/User/update-profile");
-    final response = await http.put(
+    final url = Uri.parse("$_baseUrl/api/User/add-info");
+    final response = await http.post(
       url,
       headers: {
         "Content-Type": "application/json",
@@ -67,7 +67,6 @@ class UserService {
       },
       body: jsonEncode({
         "userName": GlobalUser.userName,
-        "email": GlobalUser.email,
         "phoneNumber": GlobalUser.phoneNumber,
         "points": GlobalUser.points,
       }),

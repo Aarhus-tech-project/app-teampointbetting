@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:point_betting/services/auth_service.dart';
+import 'package:point_betting/services/bet_service.dart';
 import 'package:point_betting/services/message_service.dart';
 import 'package:point_betting/services/user_service.dart';
 import '../theme/colors.dart';
@@ -15,6 +17,8 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _isEditing = false;
+  List _bets = [];
+  List _joinedBets = [];
 
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -25,6 +29,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _loadUserData();
+    _loadBetsData();
   }
 
   Future<void> _loadUserData() async {
@@ -35,16 +40,44 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     });
   }
 
+  Future<void> _loadBetsData() async {
+    final betResult = await BetService.fetchBets();
+    if (!mounted) return;
+    if (betResult["success"]) {
+      setState(() {
+        _bets = betResult["data"];
+      });
+    } else {
+      showMessage(context, betResult["message"], type: MessageType.error);
+    }
+
+    final betAnswerResult = await BetService.getUserAnswers();
+    if (!mounted) return;
+    if (betAnswerResult["success"]) {
+      setState(() {
+        _joinedBets = betAnswerResult["data"];
+      });
+    } else {
+      showMessage(context, betAnswerResult["message"], type: MessageType.error);
+    }
+  }
+
   void _toggleEdit() {
     setState(() => _isEditing = !_isEditing);
   }
 
   void _saveProfile() async {
+    GlobalUser.userName = _nameController.text;
+    GlobalUser.email = _emailController.text;
+    GlobalUser.phoneNumber = _phoneController.text;
+
     final result = await UserService.updateUserProfile();
+    if (!mounted) return;
     if (result["success"]) {
       setState(() {
         _isEditing = false;
       });
+      showMessage(context, result["message"], type: MessageType.success);
     }
     else {
       showMessage(context, result["message"], type: MessageType.error);
@@ -60,7 +93,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     return Scaffold(
       backgroundColor: AppColors.bgColor,
       appBar: AppBar(
-        backgroundColor: AppColors.goldColor,
+        backgroundColor: AppColors.bgColor,
         title: const Text("Profile", style: TextStyle(color: AppColors.whiteColor)),
         centerTitle: true,
       ),
@@ -178,23 +211,40 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   }
 
   Widget _buildMyBetsTab() {
-    // Replace with your API call or state
-    final myBets = [
-      {"subject": "Bitcoin will reach \$100k", "status": "Active"},
-      {"subject": "Messi will win Ballon d'Or", "status": "Ended"},
-    ];
+    final myBets = _bets.where((bet) => bet["userId"] == GlobalUser.id).toList();
 
     return ListView.builder(
       padding: const EdgeInsets.all(12),
       itemCount: myBets.length,
       itemBuilder: (context, i) {
         final bet = myBets[i];
+        final subject = bet["subject"] ?? "Unknown";
+        final deadline = bet["deadline"];
+        final formattedDate = deadline != null
+            ? DateFormat("yyyy-MM-dd HH:mm")
+                .format(DateTime.parse(deadline))
+            : "No deadline";
         return Card(
           color: AppColors.goldColor,
           child: ListTile(
-            title: Text(bet["subject"]!, style: const TextStyle(color: AppColors.whiteColor)),
-            subtitle: Text("Status: ${bet["status"]}",
-                style: const TextStyle(color: AppColors.white70)),
+            title: Text(subject, style: const TextStyle(color: AppColors.whiteColor)),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Deadline: $formattedDate",
+                  style: const TextStyle(color: AppColors.redColor)
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "Yes: ${bet["totalYesPersons"] ?? 0} people (${bet["totalYesPoints"] ?? 0} points)",
+                  style: const TextStyle(color: AppColors.whiteColor),
+                ),
+                Text(
+                  "No: ${bet["totalNoPersons"] ?? 0} people (${bet["totalNoPoints"] ?? 0} points)",
+                  style: const TextStyle(color: AppColors.whiteColor),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -202,22 +252,41 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   }
 
   Widget _buildJoinedBetsTab() {
-    final joinedBets = [
-      {"subject": "Apple stock will drop 10%", "status": "Active"},
-      {"subject": "Manchester United will win EPL", "status": "Lost"},
-    ];
+    final joinedBets = _bets.where((bet) =>
+        _joinedBets.any((answer) => answer["betId"] == bet["betId"])).toList();
 
     return ListView.builder(
       padding: const EdgeInsets.all(12),
       itemCount: joinedBets.length,
       itemBuilder: (context, i) {
         final bet = joinedBets[i];
+        final subject = bet["subject"] ?? "Unknown";
+        final deadline = bet["deadline"];
+        final formattedDate = deadline != null
+            ? DateFormat("yyyy-MM-dd HH:mm")
+                .format(DateTime.parse(deadline))
+            : "No deadline";
         return Card(
           color: AppColors.accentBlue,
           child: ListTile(
-            title: Text(bet["subject"]!, style: const TextStyle(color: AppColors.whiteColor)),
-            subtitle: Text("Status: ${bet["status"]}",
-                style: const TextStyle(color: AppColors.white70)),
+            title: Text(subject, style: const TextStyle(color: AppColors.whiteColor)),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Deadline: $formattedDate",
+                  style: const TextStyle(color: AppColors.redColor)
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "Yes: ${bet["totalYesPersons"] ?? 0} people (${bet["totalYesPoints"] ?? 0} points)",
+                  style: const TextStyle(color: AppColors.whiteColor),
+                ),
+                Text(
+                  "No: ${bet["totalNoPersons"] ?? 0} people (${bet["totalNoPoints"] ?? 0} points)",
+                  style: const TextStyle(color: AppColors.whiteColor),
+                ),
+              ],
+            ),
           ),
         );
       },

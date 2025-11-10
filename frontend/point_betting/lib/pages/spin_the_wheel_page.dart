@@ -1,7 +1,11 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_fortune_wheel/flutter_fortune_wheel.dart';
+import 'package:point_betting/models/global_user.dart';
+import 'package:point_betting/services/message_service.dart';
+import 'package:point_betting/services/user_service.dart';
 import '../theme/colors.dart';
 
 class SpinTheWheelPage extends StatefulWidget {
@@ -14,9 +18,49 @@ class SpinTheWheelPage extends StatefulWidget {
 class _SpinTheWheelPageState extends State<SpinTheWheelPage> {
   final TextEditingController _pointsController = TextEditingController();
   final StreamController<int> _controller = StreamController<int>();
-  final List<double> _multipliers = [0, 0.5, 1.25, 1.5, 1.25, 0.5, 2];
+  final Set<Map<String, Object>> _multipliers = {
+    {    
+      "color": AppColors.accentBlue,
+      "double": 0.75, 
+    },
+    {    
+      "color": AppColors.goldColor,
+      "double": 1.25, 
+    },
+    {    
+      "color": AppColors.accentBlue,
+      "double": 0.5, 
+    },
+    {    
+      "color": AppColors.goldColor,
+      "double": 2, 
+    },
+    {    
+      "color": AppColors.accentBlue,
+      "double": 0.5, 
+    },
+    {    
+      "color": AppColors.goldColor,
+      "double": 1.5, 
+    },
+    {    
+      "color": AppColors.accentBlue,
+      "double": 0, 
+    },
+    {    
+      "color": AppColors.goldColor,
+      "double": 1.25, 
+    },
+    {    
+      "color": AppColors.accentBlue,
+      "double": 0.5, 
+    },
+    {    
+      "color": AppColors.goldColor,
+      "double": 3, 
+    },
+  }; 
   bool _isSpinning = false;
-  double? _result;
 
   @override
   void dispose() {
@@ -28,37 +72,46 @@ class _SpinTheWheelPageState extends State<SpinTheWheelPage> {
   void _spinWheel() {
     if (_isSpinning) return;
 
-    final points = double.tryParse(_pointsController.text);
+    final points = int.tryParse(_pointsController.text);
+    
     if (points == null || points <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Enter a valid amount of points")),
-      );
+      showMessage(context, "Enter a valid whole number of points", type: MessageType.error);
+      return;
+    }
+    if (GlobalUser.points > 0 && points > GlobalUser.points) {
+      showMessage(context, "You don't have enough points to spin", type: MessageType.error);
+      return;
+    }
+    if (GlobalUser.points == 0 && points > 25) {
+      showMessage(context, "You only have 25 pity points to spin with", type: MessageType.error);
       return;
     }
 
     setState(() {
       _isSpinning = true;
-      _result = null;
     });
 
     final selected = Random().nextInt(_multipliers.length);
     _controller.add(selected);
 
-    Future.delayed(const Duration(seconds: 5), () {
-      final multiplier = _multipliers[selected];
-      final newPoints = points * multiplier;
+    Future.delayed(const Duration(seconds: 5), () async {
+      final multiplier = _multipliers.elementAt(selected)["double"] as double;
+      final newPoints = (points * multiplier).round();
       setState(() {
         _isSpinning = false;
-        _result = newPoints;
+        GlobalUser.points = GlobalUser.points - points + newPoints;
+        _pointsController.clear();
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "🎉 You won ${multiplier}x! Total: ${newPoints.toStringAsFixed(2)} points",
-          ),
-        ),
-      );
+      final userResult = await UserService.updateUserProfile();
+      if (!mounted) return;
+
+      if (userResult["success"] != true) {
+        showMessage(context, userResult["message"], type: MessageType.error);
+        return;
+      }
+      showMessage(context, "You won ${multiplier}x! Total: ${newPoints.toStringAsFixed(2)} points", type: MessageType.info);
+
     });
   }
 
@@ -67,7 +120,7 @@ class _SpinTheWheelPageState extends State<SpinTheWheelPage> {
     return Scaffold(
       backgroundColor: AppColors.bgColor,
       appBar: AppBar(
-        backgroundColor: AppColors.goldColor,
+        backgroundColor: AppColors.bgColor,
         title: const Text(
           "Spin the Wheel",
           style: TextStyle(color: AppColors.whiteColor),
@@ -93,12 +146,12 @@ class _SpinTheWheelPageState extends State<SpinTheWheelPage> {
                   for (var multiplier in _multipliers)
                     FortuneItem(
                       child: Text(
-                        "${multiplier}x",
+                        "${multiplier["double"]}x",
                         style: const TextStyle(
                             color: Colors.white, fontSize: 18),
                       ),
                       style: FortuneItemStyle(
-                        color: AppColors.accentBlue,
+                        color: multiplier["color"] as Color,
                         borderColor: AppColors.goldColor,
                         borderWidth: 2,
                       ),
@@ -110,9 +163,12 @@ class _SpinTheWheelPageState extends State<SpinTheWheelPage> {
             TextField(
               controller: _pointsController,
               keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+              ],
               style: const TextStyle(color: AppColors.whiteColor),
               decoration: InputDecoration(
-                labelText: "Enter Points",
+                labelText: GlobalUser.points == 0 ? "Enter Points... You have 25 pity points!" : "Enter Points",
                 labelStyle: const TextStyle(color: AppColors.white70),
                 enabledBorder: OutlineInputBorder(
                   borderSide: const BorderSide(color: AppColors.goldColor),
@@ -140,14 +196,6 @@ class _SpinTheWheelPageState extends State<SpinTheWheelPage> {
                     color: AppColors.whiteColor, fontSize: 18),
               ),
             ),
-            if (_result != null) ...[
-              const SizedBox(height: 20),
-              Text(
-                "You now have ${_result!.toStringAsFixed(2)} points!",
-                style: const TextStyle(
-                    color: AppColors.whiteColor, fontSize: 20),
-              ),
-            ],
           ],
         ),
       ),
