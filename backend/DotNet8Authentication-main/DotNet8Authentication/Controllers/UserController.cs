@@ -55,6 +55,7 @@ namespace DotNet8Authentication.Controllers
 
             user.PhoneNumber = dto.PhoneNumber;
             user.UserName = dto.UserName;
+            user.Points = dto.Points;
 
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)

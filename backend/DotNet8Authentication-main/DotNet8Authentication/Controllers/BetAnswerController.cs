@@ -14,13 +14,13 @@ namespace DotNet8Authentication.Controllers
     public class BetAnswerController : ControllerBase
     {
         private readonly UserManager<User> _userManager;
-        private readonly DataContext _context;
+        private readonly DataContext _db;
         private readonly IBetStatsService _betStatsService;
 
         public BetAnswerController(UserManager<User> userManager, DataContext context, IBetStatsService betStatsService)
         {
             _userManager = userManager;
-            _context = context;
+            _db = context;
             _betStatsService = betStatsService;
         }
 
@@ -37,7 +37,7 @@ namespace DotNet8Authentication.Controllers
                 return Forbid();
             }
 
-            var userAnswers = await _context.BetAnswers
+            var userAnswers = await _db.BetAnswers
                 .Where(ba => ba.UserId == userId)
                 .ToListAsync();
 
@@ -56,7 +56,7 @@ namespace DotNet8Authentication.Controllers
 
             var userId = Guid.Parse(user.Id);
 
-            var bet = await _context.Bets
+            var bet = await _db.Bets
                 .SingleOrDefaultAsync(b => b.BetId == dto.BetId);
             if (bet == null)
             {
@@ -67,7 +67,7 @@ namespace DotNet8Authentication.Controllers
             {
                 return Forbid();
             }
-            var existingBet = await _context.BetAnswers
+            var existingBet = await _db.BetAnswers
                 .AnyAsync(ba => ba.BetId == dto.BetId && ba.UserId == userId);
 
             if (existingBet)
@@ -92,8 +92,8 @@ namespace DotNet8Authentication.Controllers
             {
                 return Forbid();
             }
-            _context.BetAnswers.Add(betAnswer);
-            await _context.SaveChangesAsync();
+            _db.BetAnswers.Add(betAnswer);
+            await _db.SaveChangesAsync();
             await _betStatsService.GetBetTotalsAsync(dto.BetId);
             return Ok(betAnswer);
         }
