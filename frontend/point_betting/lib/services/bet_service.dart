@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:point_betting/models/global_http.dart';
+import 'package:point_betting/models/global_user.dart';
 import 'package:point_betting/services/auth_service.dart';
 
 class BetService {
-  static const String _baseUrl = "http://192.168.102.2:5000";
+  static const String _baseUrl = GlobalHttp.baseUrl;
 
   static Future<Map<String, dynamic>> fetchBets() async {
     final tokenResult = await AuthService.getValidAccessToken();
@@ -112,15 +114,15 @@ class BetService {
     };
   }
 
-  static Future<Map<String, dynamic>> getUserAnswers({
-    required String userId
-  }) async {
+  static Future<Map<String, dynamic>> getUserAnswers() async {
     final tokenResult = await AuthService.getValidAccessToken();
     if (tokenResult["success"] != true) return tokenResult;
 
     final accessToken = tokenResult["accessToken"];
 
-    final url = Uri.parse("$_baseUrl/api/BetAnswer/$userId");
+    final userId = GlobalUser.id;
+
+    final url = Uri.parse("$_baseUrl/api/BetAnswer/userId?userId=$userId");
     final response = await http.get(
       url,
       headers: {
@@ -141,5 +143,4 @@ class BetService {
       "message": "Failed to fetch user answers. Please try again."
     };
   }
-
 }

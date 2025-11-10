@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:point_betting/models/global_http.dart';
+import 'package:point_betting/models/global_user.dart';
 import 'package:point_betting/services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserService {
-  static const String _baseUrl = "http://192.168.102.2:5000";
+  static const String _baseUrl = GlobalHttp.baseUrl;
 
-  Future<Map<String, dynamic>> fetchUserInfo() async {
+  static Future<Map<String, dynamic>> fetchUserInfo() async {
     final tokenResult = await AuthService.getValidAccessToken();
     if (tokenResult["success"] != true) return tokenResult;
 
@@ -36,24 +38,55 @@ class UserService {
     };
   }
 
-  Future<Map<String, dynamic>> getCachedUserInfo() async {
+  static Future<void> setGlobalUserInfo() async {
     final prefs = await SharedPreferences.getInstance();
     final userInfoString = prefs.getString('user_info');
-
     if (userInfoString != null) {
+      final userInfo = jsonDecode(userInfoString);
+
+      GlobalUser.id = userInfo["id"] ?? '';
+      GlobalUser.userName = userInfo["userName"] ?? '';
+      GlobalUser.email = userInfo["email"] ?? '';
+      GlobalUser.points = userInfo["points"] ?? 0;
+      GlobalUser.phoneNumber = userInfo["phoneNumber"] ?? '';
+    }
+  }
+  
+  static Future<Map<String, dynamic>> updateUserProfile() async {
+    final tokenResult = await AuthService.getValidAccessToken();
+    if (tokenResult["success"] != true) return tokenResult;
+
+    final accessToken = tokenResult["accessToken"];
+
+    final url = Uri.parse("$_baseUrl/api/User/update-profile");
+    final response = await http.put(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer ${accessToken.replaceAll('Bearer ', '')}",
+      },
+      body: jsonEncode({
+        "userName": GlobalUser.userName,
+        "email": GlobalUser.email,
+        "phoneNumber": GlobalUser.phoneNumber,
+        "points": GlobalUser.points,
+      }),
+    );
+
+    if (response.statusCode == 200) {
       return {
         "success": true,
-        "data": jsonDecode(userInfoString)
+        "message": "Profile updated successfully."
       };
     }
 
     return {
       "success": false,
-      "message": "No cached user info found."
+      "message": "Failed to update profile. Please try again."
     };
   }
 
-  Future<Map<String, dynamic>> fetchLeaderboard() async {
+  static Future<Map<String, dynamic>> fetchLeaderboard() async {
     final tokenResult = await AuthService.getValidAccessToken();
     if (tokenResult["success"] != true) return tokenResult;
 
