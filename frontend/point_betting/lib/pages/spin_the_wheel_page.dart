@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_fortune_wheel/flutter_fortune_wheel.dart';
 import 'package:point_betting/models/global_user.dart';
+import 'package:point_betting/models/wheel_multipliers.dart';
 import 'package:point_betting/services/message_service.dart';
 import 'package:point_betting/services/user_service.dart';
 import '../theme/colors.dart';
@@ -18,48 +19,7 @@ class SpinTheWheelPage extends StatefulWidget {
 class _SpinTheWheelPageState extends State<SpinTheWheelPage> {
   final TextEditingController _pointsController = TextEditingController();
   final StreamController<int> _controller = StreamController<int>();
-  final Set<Map<String, Object>> _multipliers = {
-    {    
-      "color": AppColors.accentBlue,
-      "double": 0.75, 
-    },
-    {    
-      "color": AppColors.goldColor,
-      "double": 1.25, 
-    },
-    {    
-      "color": AppColors.accentBlue,
-      "double": 0.5, 
-    },
-    {    
-      "color": AppColors.goldColor,
-      "double": 2, 
-    },
-    {    
-      "color": AppColors.accentBlue,
-      "double": 0.5, 
-    },
-    {    
-      "color": AppColors.goldColor,
-      "double": 1.5, 
-    },
-    {    
-      "color": AppColors.accentBlue,
-      "double": 0, 
-    },
-    {    
-      "color": AppColors.goldColor,
-      "double": 1.25, 
-    },
-    {    
-      "color": AppColors.accentBlue,
-      "double": 0.5, 
-    },
-    {    
-      "color": AppColors.goldColor,
-      "double": 3, 
-    },
-  }; 
+  final Set<Map<String, Object>> _multipliers = WheelMultipliers.multipliers;
   bool _isSpinning = false;
 
   @override
