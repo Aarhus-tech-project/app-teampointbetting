@@ -35,6 +35,8 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<IBettingManager, BettingManager>();
 builder.Services.AddScoped<IBetStatsService, BetStatsService>();
 builder.Services.AddSignalR();
+builder.Services.AddScoped<EmailService>();
+builder.Services.AddHostedService<BetDeadlineChecker>();
 
 builder.Services.AddIdentityApiEndpoints<User>()
     .AddEntityFrameworkStores<DataContext>();
