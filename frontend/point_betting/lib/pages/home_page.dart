@@ -41,7 +41,7 @@ class _HomePageState extends State<HomePage> {
           if (deadlineStr == null) return false;
 
           final deadlineUtc = DateTime.parse(deadlineStr).toUtc();
-          final nowUtc = DateTime.now().toUtc().add(Duration(hours: 1)); // Adjust for UTC+1
+          final nowUtc = DateTime.now().toUtc();
 
           final isBetPastDeadline = deadlineUtc.isBefore(nowUtc);
 
@@ -367,7 +367,7 @@ class _HomePageState extends State<HomePage> {
                             final deadline = bet["deadline"];
                             final formattedDate = deadline != null
                                 ? DateFormat("yyyy-MM-dd HH:mm")
-                                    .format(DateTime.parse(deadline))
+                                    .format(DateTime.parse(deadline).add(Duration(hours: 1)))
                                 : "No deadline";
 
                             return Card(
