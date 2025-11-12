@@ -79,11 +79,11 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                       final points = user["points"] ?? 0;
 
                       return Card(
-                        color: user["userName"] == GlobalUser.userName ? AppColors.redColor : AppColors.goldColor,
+                        color: user["userName"] == GlobalUser.userName ? AppColors.accentBlue : AppColors.goldColor,
                         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         child: ListTile(
                           leading: CircleAvatar(
-                            backgroundColor: AppColors.accentBlue,
+                            backgroundColor: user["userName"] == GlobalUser.userName ? AppColors.goldColor : AppColors.accentBlue,
                             child: Text(
                               rank.toString(),
                               style: const TextStyle(color: AppColors.whiteColor),
@@ -100,7 +100,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                 "$points",
                                 style: const TextStyle(color: AppColors.whiteColor, fontSize: 16),
                               ),
-                              Icon(Icons.attach_money, color: user["userName"] == GlobalUser.userName ? AppColors.goldColor : AppColors.redColor)
+                              Icon(Icons.attach_money, color: AppColors.redColor)
                             ],
                           ),
                         ),
