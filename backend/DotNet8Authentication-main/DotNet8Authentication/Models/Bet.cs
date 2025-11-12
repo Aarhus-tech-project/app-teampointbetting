@@ -7,6 +7,5 @@
         public string Subject { get; set; }
         public DateTime Deadline { get; set; }
         public string? CorrectAnswer { get; set; }
-        public bool IsDeadlineNotified { get; set; } = false;
     }
 }

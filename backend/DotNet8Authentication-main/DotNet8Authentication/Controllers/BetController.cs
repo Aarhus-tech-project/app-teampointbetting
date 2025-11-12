@@ -121,7 +121,8 @@ namespace DotNet8Authentication.Controllers
                     totalYesPoints,
                     totalYesPersons,
                     totalNoPoints,
-                    totalNoPersons
+                    totalNoPersons,
+                    bet.CorrectAnswer
                 });
             }
             return Ok(result);

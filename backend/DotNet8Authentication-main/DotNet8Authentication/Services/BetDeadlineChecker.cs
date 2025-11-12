@@ -50,8 +50,6 @@ namespace DotNet8Authentication.Services
                             );
                         }
 
-                        bet.IsDeadlineNotified = true;
-
                     }
                     await db.SaveChangesAsync(stoppingToken);
                     await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
