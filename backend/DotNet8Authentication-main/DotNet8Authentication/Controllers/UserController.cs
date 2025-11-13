@@ -32,8 +32,9 @@ namespace DotNet8Authentication.Controllers
             return Ok(new
             {
                 user.Id,
-                user.UserName,
+                user.DisplayName,
                 user.Email,
+                user.ProfilePicturePath,
                 user.PhoneNumber,
                 user.Points
             });
@@ -54,7 +55,8 @@ namespace DotNet8Authentication.Controllers
                 return NotFound();
 
             user.PhoneNumber = dto.PhoneNumber;
-            user.UserName = dto.UserName;
+            user.DisplayName = dto.DisplayName;
+            user.ProfilePicturePath = dto.ProfilePicturePath;
             user.Points = dto.Points;
 
             var result = await _userManager.UpdateAsync(user);
@@ -66,8 +68,9 @@ namespace DotNet8Authentication.Controllers
             return Ok(new
             {
                 user.Id,
-                user.UserName,
+                user.DisplayName,
                 user.Email,
+                user.ProfilePicturePath,
                 user.PhoneNumber,
                 user.Points
             });
@@ -87,7 +90,8 @@ namespace DotNet8Authentication.Controllers
                 .Select(user => new
                 {
                     user.Id,
-                    user.UserName,
+                    user.DisplayName,
+                    user.ProfilePicturePath,
                     user.Points
                 })
                 .ToListAsync();
