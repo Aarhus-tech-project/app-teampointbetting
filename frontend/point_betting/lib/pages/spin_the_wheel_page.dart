@@ -19,7 +19,7 @@ class SpinTheWheelPage extends StatefulWidget {
 class _SpinTheWheelPageState extends State<SpinTheWheelPage> {
   final TextEditingController _pointsController = TextEditingController();
   final StreamController<int> _controller = StreamController<int>();
-  final Set<Map<String, Object>> _multipliers = WheelMultipliers.multipliers;
+  final List<Map<String, Object>> _multipliers = WheelMultipliers.multipliers;
   bool _isSpinning = false;
 
   @override
@@ -33,7 +33,7 @@ class _SpinTheWheelPageState extends State<SpinTheWheelPage> {
     if (_isSpinning) return;
 
     final points = int.tryParse(_pointsController.text);
-    
+
     if (points == null || points <= 0) {
       showMessage(context, "Enter a valid whole number of points", type: MessageType.error);
       return;
@@ -55,8 +55,11 @@ class _SpinTheWheelPageState extends State<SpinTheWheelPage> {
     _controller.add(selected);
 
     Future.delayed(const Duration(seconds: 5), () async {
-      final multiplier = _multipliers.elementAt(selected)["double"] as double;
-      final newPoints = (points * multiplier).round();
+      final multiplier = _multipliers[selected]["multiplier"] as double;
+
+      // Multiply and round to int
+      final newPoints = max(0, (points * multiplier).round());
+
       setState(() {
         _isSpinning = false;
         GlobalUser.points = GlobalUser.points - points + newPoints;
@@ -70,8 +73,12 @@ class _SpinTheWheelPageState extends State<SpinTheWheelPage> {
         showMessage(context, userResult["message"], type: MessageType.error);
         return;
       }
-      showMessage(context, "You won ${multiplier}x! Total: ${newPoints.toStringAsFixed(2)} points", type: MessageType.info);
 
+      showMessage(
+        context,
+        "You won ${multiplier}x! Total: $newPoints points",
+        type: MessageType.info,
+      );
     });
   }
 
@@ -102,33 +109,33 @@ class _SpinTheWheelPageState extends State<SpinTheWheelPage> {
                     child: TriangleIndicator(color: AppColors.goldColor),
                   ),
                 ],
-                items: [
-                  for (var multiplier in _multipliers)
-                    FortuneItem(
-                      child: Text(
-                        "${multiplier["double"]}x",
-                        style: const TextStyle(
-                            color: Colors.white, fontSize: 18),
+                items: _multipliers
+                    .map(
+                      (m) => FortuneItem(
+                        child: Text(
+                          "${m["multiplier"]}x",
+                          style: const TextStyle(color: Colors.white, fontSize: 18),
+                        ),
+                        style: FortuneItemStyle(
+                          color: m["color"] as Color,
+                          borderColor: AppColors.goldColor,
+                          borderWidth: 2,
+                        ),
                       ),
-                      style: FortuneItemStyle(
-                        color: multiplier["color"] as Color,
-                        borderColor: AppColors.goldColor,
-                        borderWidth: 2,
-                      ),
-                    ),
-                ],
+                    )
+                    .toList(),
               ),
             ),
             const SizedBox(height: 20),
             TextField(
               controller: _pointsController,
               keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-              ],
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               style: const TextStyle(color: AppColors.whiteColor),
               decoration: InputDecoration(
-                labelText: GlobalUser.points == 0 ? "Enter Points... You have 25 pity points!" : "Enter Points",
+                labelText: GlobalUser.points == 0
+                    ? "Enter Points... You have 25 pity points!"
+                    : "Enter Points",
                 labelStyle: const TextStyle(color: AppColors.white70),
                 enabledBorder: OutlineInputBorder(
                   borderSide: const BorderSide(color: AppColors.goldColor),
@@ -145,15 +152,12 @@ class _SpinTheWheelPageState extends State<SpinTheWheelPage> {
               onPressed: _isSpinning ? null : _spinWheel,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.goldColor,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: Text(
                 _isSpinning ? "Spinning..." : "Spin!",
-                style: const TextStyle(
-                    color: AppColors.whiteColor, fontSize: 18),
+                style: const TextStyle(color: AppColors.whiteColor, fontSize: 18),
               ),
             ),
           ],

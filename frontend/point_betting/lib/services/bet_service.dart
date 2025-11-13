@@ -143,4 +143,39 @@ class BetService {
       "message": "Failed to fetch user answers. Please try again."
     };
   }
+
+  Future<Map<String, dynamic>> setCorrectAnswer({
+    required String betId,
+    required String correctAnswer,
+  }) async {
+    final tokenResult = await AuthService.getValidAccessToken();
+    if (tokenResult["success"] != true) return tokenResult;
+
+    final accessToken = tokenResult["accessToken"];
+
+    final url = Uri.parse("$_baseUrl/api/Bet/set-result");
+    final response = await http.put(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer ${accessToken.replaceAll('Bearer ', '')}",
+      },
+      body: jsonEncode({
+        "betId": betId,
+        "correctAnswer": correctAnswer,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return {
+        "success": true,
+        "message": "Correct answer set successfully"
+      };
+    }
+
+    return {
+      "success": false,
+      "message": "Failed to set correct answer. Please try again."
+    };
+  }
 }

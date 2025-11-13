@@ -2,21 +2,157 @@ import 'package:flutter/material.dart';
 import 'package:point_betting/models/global_user.dart';
 import 'package:point_betting/services/message_service.dart';
 import 'package:point_betting/services/user_service.dart';
-import 'pages/home_page.dart';
-import 'pages/spin_the_wheel_page.dart';
-import 'pages/leaderboard_page.dart';
-import 'pages/profile_page.dart';
-import 'pages/login_page.dart';
-import 'theme/colors.dart';
-import 'services/auth_service.dart';
+import 'package:point_betting/pages/home_page.dart';
+import 'package:point_betting/pages/spin_the_wheel_page.dart';
+import 'package:point_betting/pages/leaderboard_page.dart';
+import 'package:point_betting/pages/profile_page.dart';
+import 'package:point_betting/pages/login_page.dart';
+import 'package:point_betting/theme/colors.dart';
+import 'package:point_betting/services/auth_service.dart';
+
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:workmanager/workmanager.dart';
+import 'dart:convert';
+import 'package:flutter/foundation.dart'; // for kIsWeb
+import 'dart:io' show Platform; // only use for mobile checks
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+
+const String backgroundTaskName = "check_bets_task";
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Check token validity before launching the app
+  // Initialize notifications
+  const AndroidInitializationSettings androidInitSettings =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+  const InitializationSettings initSettings =
+      InitializationSettings(android: androidInitSettings);
+  await flutterLocalNotificationsPlugin.initialize(initSettings);
+
+  if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+    // Initialize background task
+    await Workmanager().initialize(callbackDispatcher);
+
+    // Register periodic background task (runs every 15 minutes)
+    await Workmanager().registerPeriodicTask(
+      "1",
+      backgroundTaskName,
+      frequency: const Duration(minutes: 15),
+      constraints: Constraints(networkType: NetworkType.connected),
+    );
+  }
+
+  // Check login token before launch
   final bool valid = await AuthService.isTokenValid();
 
   runApp(MyApp(isLoggedIn: valid));
+}
+
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    if (task == backgroundTaskName) {
+      final prefs = await SharedPreferences.getInstance();
+
+      final myBetsData = prefs.getString('my_bets');
+      final joinedBetsData = prefs.getString('joined_bets');
+      if (myBetsData == null && joinedBetsData == null) {
+        return Future.value(true);
+      }
+
+      final now = DateTime.now();
+      bool updated = false;
+
+      // CHECK OWN BETS — Need to fill correct answer
+      if (myBetsData != null) {
+        final List<Map<String, dynamic>> myBets =
+            List<Map<String, dynamic>>.from(jsonDecode(myBetsData));
+
+        for (final bet in myBets) {
+          final deadline = bet["deadline"];
+          final correctAnswer = bet["correctAnswer"];
+
+          if (deadline == null) continue;
+          final deadlineDate = DateTime.tryParse(deadline);
+          if (deadlineDate == null) continue;
+
+          // Deadline passed but answer not filled
+          if (deadlineDate.isBefore(now) &&
+              (correctAnswer == null || correctAnswer.toString().isEmpty) &&
+              bet["notifiedMissingAnswer"] != true) {
+            await _showBetNotification(
+              "Your bet \"${bet["subject"] ?? "Unnamed"}\" needs a result!",
+              body: "Deadline passed — please fill in the correct answer.",
+            );
+            bet["notifiedMissingAnswer"] = true;
+            updated = true;
+          }
+        }
+
+        if (updated) {
+          await prefs.setString('my_bets', jsonEncode(myBets));
+        }
+      }
+
+      // CHECK JOINED BETS — Bet finished
+      if (joinedBetsData != null) {
+        final List<Map<String, dynamic>> joinedBets =
+            List<Map<String, dynamic>>.from(jsonDecode(joinedBetsData));
+
+        for (final bet in joinedBets) {
+          final deadline = bet["deadline"];
+          final correctAnswer = bet["correctAnswer"];
+
+          if (deadline == null) continue;
+          final deadlineDate = DateTime.tryParse(deadline);
+          if (deadlineDate == null) continue;
+
+          // Bet ended, correct answer is given
+          if (deadlineDate.isBefore(now) &&
+              correctAnswer != null &&
+              correctAnswer.toString().isNotEmpty &&
+              bet["notifiedFinished"] != true) {
+            await _showBetNotification(
+              "A bet you joined is finished!",
+              body:
+                  "\"${bet["subject"] ?? "Unnamed"}\" has been resolved with answer: $correctAnswer",
+            );
+            bet["notifiedFinished"] = true;
+            updated = true;
+          }
+        }
+
+        if (updated) {
+          await prefs.setString('joined_bets', jsonEncode(joinedBets));
+        }
+      }
+
+      return Future.value(true);
+    }
+
+    return Future.value(true);
+  });
+}
+
+Future<void> _showBetNotification(String title, {String? body}) async {
+  const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+    'bets_channel',
+    'Bet Notifications',
+    importance: Importance.max,
+    priority: Priority.high,
+  );
+
+  const NotificationDetails notificationDetails =
+      NotificationDetails(android: androidDetails);
+
+  await flutterLocalNotificationsPlugin.show(
+    DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    title,
+    body ?? '',
+    notificationDetails,
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -74,6 +210,13 @@ class _MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
     _getUserInfo();
+
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+      flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.requestNotificationsPermission();
+    }
   }
 
   void _onTabTapped(int index) {
