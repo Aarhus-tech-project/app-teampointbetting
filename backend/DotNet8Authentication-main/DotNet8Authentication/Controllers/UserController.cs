@@ -34,6 +34,7 @@ namespace DotNet8Authentication.Controllers
                 user.Id,
                 user.DisplayName,
                 user.Email,
+                user.ProfilePicturePath,
                 user.PhoneNumber,
                 user.Points
             });
@@ -55,6 +56,7 @@ namespace DotNet8Authentication.Controllers
 
             user.PhoneNumber = dto.PhoneNumber;
             user.DisplayName = dto.DisplayName;
+            user.ProfilePicturePath = dto.ProfilePicturePath;
             user.Points = dto.Points;
 
             var result = await _userManager.UpdateAsync(user);
@@ -68,6 +70,7 @@ namespace DotNet8Authentication.Controllers
                 user.Id,
                 user.DisplayName,
                 user.Email,
+                user.ProfilePicturePath,
                 user.PhoneNumber,
                 user.Points
             });
@@ -88,6 +91,7 @@ namespace DotNet8Authentication.Controllers
                 {
                     user.Id,
                     user.DisplayName,
+                    user.ProfilePicturePath,
                     user.Points
                 })
                 .ToListAsync();

@@ -42,7 +42,7 @@ namespace DotNet8Authentication.Classes
             {
                 if (users.TryGetValue(answer.UserId.ToString(), out var user))
                 {
-                    user.Points += answer.BettedPoints + rewardPerWinner;
+                    user.Points += answer.BettedPoints * 2 + rewardPerWinner;
                 }
             }
 

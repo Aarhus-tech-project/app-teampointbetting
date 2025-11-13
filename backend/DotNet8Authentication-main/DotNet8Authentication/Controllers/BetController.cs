@@ -78,7 +78,7 @@ namespace DotNet8Authentication.Controllers
             await _db.SaveChangesAsync();
             var payoutSuccess = await _bettingManager.EvaluateAndPayoutBetAsync(bet.BetId, bet.CorrectAnswer);
 
-            if (payoutSuccess)
+            if (!payoutSuccess)
                 return StatusCode(500, "Error during payout processing.");
 
             return Ok(new
