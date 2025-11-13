@@ -59,19 +59,19 @@ namespace DotNet8Authentication.Controllers
 
             var bet = await _db.Bets.FirstOrDefaultAsync(b => b.BetId == dto.BetId);
             if (bet == null)
-            {
                 return NotFound();
-            }
 
             if (bet.UserId != Guid.Parse(user.Id))
-            {
-                return Forbid("Only the creator of the bet can set the result.");
-            }
+                return Unauthorized();
+
+            var existingBet = await _db.Bets
+                .AnyAsync(b => b.BetId == dto.BetId && b.CorrectAnswer != null);
+
+            if (existingBet)
+                return BadRequest("Bet result has already been set.");
 
             if (DateTime.UtcNow < bet.Deadline)
-            {
                 return BadRequest("Cannot set result before the deadline.");
-            }
 
             bet.CorrectAnswer = dto.CorrectAnswer;
 
@@ -79,9 +79,8 @@ namespace DotNet8Authentication.Controllers
             var payoutSuccess = await _bettingManager.EvaluateAndPayoutBetAsync(bet.BetId, bet.CorrectAnswer);
 
             if (payoutSuccess)
-            {
                 return StatusCode(500, "Error during payout processing.");
-            }
+
             return Ok(new
             {
                 message = "Bet result updated",
