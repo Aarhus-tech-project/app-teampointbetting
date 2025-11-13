@@ -35,14 +35,15 @@ Future<void> main() async {
   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
     // Initialize background task
     await Workmanager().initialize(callbackDispatcher);
-
+    print('WorkManager initialized====================================================');
     // Register periodic background task (runs every 15 minutes)
     await Workmanager().registerPeriodicTask(
       "1",
       backgroundTaskName,
       frequency: const Duration(minutes: 15),
-      constraints: Constraints(networkType: NetworkType.connected),
+      // constraints: Constraints(networkType: NetworkType.connected),
     );
+    print('Background task registered====================================================');
   }
 
   // Check login token before launch
@@ -51,6 +52,86 @@ Future<void> main() async {
   runApp(MyApp(isLoggedIn: valid));
 }
 
+// method to manually run the background task logic
+void _triggerManualTask() async {
+  print('Manual Task Triggered: Checking Bets');
+  final prefs = await SharedPreferences.getInstance();
+  final myBetsData = prefs.getString('my_bets');
+  final joinedBetsData = prefs.getString('joined_bets');
+
+  if (myBetsData == null && joinedBetsData == null) {
+    return;
+  }
+
+  final now = DateTime.now();
+  bool updated = false;
+
+  // CHECK OWN BETS — Need to fill correct answer
+  if (myBetsData != null) {
+    final List<Map<String, dynamic>> myBets =
+        List<Map<String, dynamic>>.from(jsonDecode(myBetsData));
+
+    for (final bet in myBets) {
+      final deadline = bet["deadline"];
+      final correctAnswer = bet["correctAnswer"];
+
+      if (deadline == null) continue;
+      final deadlineDate = DateTime.tryParse(deadline)?.add(Duration(hours: 1));
+      if (deadlineDate == null) continue;
+
+      // Deadline passed but answer not filled
+      if (deadlineDate.isBefore(now) &&
+          (correctAnswer == null || correctAnswer.toString().isEmpty) &&
+          bet["notifiedMissingAnswer"] != true) {
+        await _showBetNotification(
+          "Your bet \"${bet["subject"] ?? "Unnamed"}\" needs a result!",
+          body: "Deadline passed — please fill in the correct answer.",
+        );
+        bet["notifiedMissingAnswer"] = true;
+        updated = true;
+      }
+    }
+
+    if (updated) {
+      await prefs.setString('my_bets', jsonEncode(myBets));
+    }
+  }
+
+  // CHECK JOINED BETS — Bet finished
+  if (joinedBetsData != null) {
+    final List<Map<String, dynamic>> joinedBets =
+        List<Map<String, dynamic>>.from(jsonDecode(joinedBetsData));
+
+    for (final bet in joinedBets) {
+      final deadline = bet["deadline"];
+      final correctAnswer = bet["correctAnswer"];
+
+      if (deadline == null) continue;
+      final deadlineDate = DateTime.tryParse(deadline);
+      if (deadlineDate == null) continue;
+
+      // Bet ended, correct answer is given
+      if (deadlineDate.isBefore(now) &&
+          correctAnswer != null &&
+          correctAnswer.toString().isNotEmpty &&
+          bet["notifiedFinished"] != true) {
+        await _showBetNotification(
+          "A bet you joined is finished!",
+          body:
+              "\"${bet["subject"] ?? "Unnamed"}\" has been resolved with answer: $correctAnswer",
+        );
+        bet["notifiedFinished"] = true;
+        updated = true;
+      }
+    }
+
+    if (updated) {
+      await prefs.setString('joined_bets', jsonEncode(joinedBets));
+    }
+  }
+}
+
+@pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     if (task == backgroundTaskName) {
@@ -58,6 +139,7 @@ void callbackDispatcher() {
 
       final myBetsData = prefs.getString('my_bets');
       final joinedBetsData = prefs.getString('joined_bets');
+      print( 'Background Task Running: Checking Bets');
       if (myBetsData == null && joinedBetsData == null) {
         return Future.value(true);
       }
@@ -75,7 +157,7 @@ void callbackDispatcher() {
           final correctAnswer = bet["correctAnswer"];
 
           if (deadline == null) continue;
-          final deadlineDate = DateTime.tryParse(deadline);
+          final deadlineDate = DateTime.tryParse(deadline)?.add(Duration(hours: 1));
           if (deadlineDate == null) continue;
 
           // Deadline passed but answer not filled
@@ -266,7 +348,28 @@ class _MainPageState extends State<MainPage> {
         ),
         centerTitle: false,
       ),
-      body: _pages[_selectedIndex],
+      body: Column(
+        children: [
+          // Pages or other widgets
+          Expanded(child: _pages[_selectedIndex]),
+
+          // Button to trigger the background task manually
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: ElevatedButton(
+              onPressed: _triggerManualTask,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accentBlue,
+                padding: const EdgeInsets.symmetric(vertical: 15),
+              ),
+              child: const Text(
+                "Trigger Task Manually",
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+          ),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,

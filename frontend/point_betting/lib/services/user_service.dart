@@ -45,7 +45,7 @@ class UserService {
       final userInfo = jsonDecode(userInfoString);
 
       GlobalUser.id = userInfo["id"] ?? '';
-      GlobalUser.userName = userInfo["userName"] ?? '';
+      GlobalUser.userName = userInfo["displayName"] ?? '';
       GlobalUser.email = userInfo["email"] ?? '';
       GlobalUser.points = userInfo["points"] ?? 0;
       GlobalUser.phoneNumber = userInfo["phoneNumber"] ?? '';
@@ -66,7 +66,7 @@ class UserService {
         "Authorization": "Bearer ${accessToken.replaceAll('Bearer ', '')}",
       },
       body: jsonEncode({
-        "userName": GlobalUser.userName,
+        "displayName": GlobalUser.userName,
         "phoneNumber": GlobalUser.phoneNumber,
         "points": GlobalUser.points,
       }),

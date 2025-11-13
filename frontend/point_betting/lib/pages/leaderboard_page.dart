@@ -75,15 +75,15 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                     itemBuilder: (context, index) {
                       final user = _leaderboard[index];
                       final rank = index + 1;
-                      final username = user["userName"] ?? "Unknown";
+                      final username = user["displayName"] ?? "Unknown";
                       final points = user["points"] ?? 0;
 
                       return Card(
-                        color: user["userName"] == GlobalUser.userName ? AppColors.accentBlue : AppColors.goldColor,
+                        color: user["displayName"] == GlobalUser.userName ? AppColors.accentBlue : AppColors.goldColor,
                         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         child: ListTile(
                           leading: CircleAvatar(
-                            backgroundColor: user["userName"] == GlobalUser.userName ? AppColors.goldColor : AppColors.accentBlue,
+                            backgroundColor: user["displayName"] == GlobalUser.userName ? AppColors.goldColor : AppColors.accentBlue,
                             child: Text(
                               rank.toString(),
                               style: const TextStyle(color: AppColors.whiteColor),

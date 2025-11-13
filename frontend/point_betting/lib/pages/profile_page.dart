@@ -480,6 +480,15 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         await prefs.setString("my_bets", jsonEncode(myBetsList));
       }
     }
+
+    // Update user data
+    final userResult = await UserService.fetchUserInfo();
+    if (!mounted) return;
+    if (userResult["success"] != true) {
+      showMessage(context, userResult["message"], type: MessageType.error);
+      return;
+    }
+    UserService.setGlobalUserInfo();
   }
 
   Widget _buildJoinedBetsTab() {
