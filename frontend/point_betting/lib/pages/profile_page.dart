@@ -221,119 +221,120 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
       ),
       body: Column(
         children: [
-          Container(
-            width: double.infinity,
-            color: AppColors.goldColor,
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                GestureDetector(
-                  onTap: () async {
-                    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS) && _isEditing) { 
-                      final granted = await _requestPermissions();
-                      if (granted) {
-                        _pickProfileImage(context);
-                      } else {
-                        showMessage(context, "Permission denied!", type: MessageType.error);
-                      }
-                    }
-                  },
-                  child: CircleAvatar(
-                    radius: 40,
-                    backgroundColor: AppColors.bgColor,
-                    backgroundImage: _profileImage != null
-                        ? FileImage(_profileImage!)
-                        : null,
-                    child: _profileImage == null
-                        ? const Icon(Icons.person, size: 40, color: AppColors.goldColor)
-                        : null,
+          // Top section scrollable
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    color: AppColors.goldColor,
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        GestureDetector(
+                          onTap: () async {
+                            if (!kIsWeb && (Platform.isAndroid || Platform.isIOS) && _isEditing) { 
+                              final granted = await _requestPermissions();
+                              if (granted) {
+                                _pickProfileImage(context);
+                              } else {
+                                showMessage(context, "Permission denied!", type: MessageType.error);
+                              }
+                            }
+                          },
+                          child: CircleAvatar(
+                            radius: 40,
+                            backgroundColor: AppColors.bgColor,
+                            backgroundImage: _profileImage != null
+                                ? FileImage(_profileImage!)
+                                : null,
+                            child: _profileImage == null
+                                ? const Icon(Icons.person, size: 40, color: AppColors.goldColor)
+                                : null,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        _isEditing
+                            ? Column(
+                                children: [
+                                  TextField(
+                                    controller: _nameController,
+                                    decoration: const InputDecoration(
+                                      labelText: "Name",
+                                      labelStyle: TextStyle(color: AppColors.whiteColor),
+                                      enabledBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: AppColors.whiteColor)),
+                                    ),
+                                    style: const TextStyle(color: AppColors.whiteColor),
+                                  ),
+                                  TextField(
+                                    controller: _phoneController,
+                                    decoration: const InputDecoration(
+                                      labelText: "Phone Number",
+                                      labelStyle: TextStyle(color: AppColors.whiteColor),
+                                      enabledBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: AppColors.whiteColor)),
+                                    ),
+                                    style: const TextStyle(color: AppColors.whiteColor),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  ElevatedButton(
+                                    onPressed: _saveProfile,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.accentBlue,
+                                    ),
+                                    child: const Text("Save", style: TextStyle(color: Colors.white)),
+                                  ),
+                                ],
+                              )
+                            : Column(
+                                children: [
+                                  Text(
+                                    GlobalUser.userName,
+                                    style: const TextStyle(
+                                        color: AppColors.whiteColor,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    GlobalUser.email,
+                                    style: const TextStyle(color: AppColors.white70),
+                                  ),
+                                  Text(
+                                    GlobalUser.phoneNumber,
+                                    style: const TextStyle(color: AppColors.white70),
+                                  ),
+                                  TextButton(
+                                    onPressed: _toggleEdit,
+                                    child: const Text("Edit Profile",
+                                        style: TextStyle(color: AppColors.whiteColor)),
+                                  ),
+                                ],
+                              ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 10),
-                _isEditing
-                    ? Column(
-                        children: [
-                          TextField(
-                            controller: _nameController,
-                            decoration: const InputDecoration(
-                              labelText: "Name",
-                              labelStyle: TextStyle(color: AppColors.whiteColor),
-                              enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(color: AppColors.whiteColor)),
-                            ),
-                            style: const TextStyle(color: AppColors.whiteColor),
-                          ),
-                          // TextField(
-                          //   controller: _emailController,
-                          //   decoration: const InputDecoration(
-                          //     labelText: "Email",
-                          //     labelStyle: TextStyle(color: AppColors.whiteColor),
-                          //     enabledBorder: UnderlineInputBorder(
-                          //         borderSide: BorderSide(color: AppColors.whiteColor)),
-                          //   ),
-                          //   style: const TextStyle(color: AppColors.whiteColor),
-                          // ),
-                          TextField(
-                            controller: _phoneController,
-                            decoration: const InputDecoration(
-                              labelText: "Phone Number",
-                              labelStyle: TextStyle(color: AppColors.whiteColor),
-                              enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(color: AppColors.whiteColor)),
-                            ),
-                            style: const TextStyle(color: AppColors.whiteColor),
-                          ),
-                          const SizedBox(height: 10),
-                          ElevatedButton(
-                            onPressed: _saveProfile,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.accentBlue,
-                            ),
-                            child: const Text("Save", style: TextStyle(color: Colors.white)),
-                          ),
-                        ],
-                      )
-                    : Column(
-                        children: [
-                          Text(
-                            GlobalUser.userName,
-                            style: const TextStyle(
-                                color: AppColors.whiteColor,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            GlobalUser.email,
-                            style: const TextStyle(color: AppColors.white70),
-                          ),
-                          Text(
-                            GlobalUser.phoneNumber,
-                            style: const TextStyle(color: AppColors.white70),
-                          ),
-                          TextButton(
-                            onPressed: _toggleEdit,
-                            child: const Text("Edit Profile",
-                                style: TextStyle(color: AppColors.whiteColor)),
-                          ),
-                        ],
-                      ),
-              ],
+
+                  // TabBar moves INSIDE scrollable
+                  TabBar(
+                    controller: _tabController,
+                    indicatorColor: AppColors.goldColor,
+                    labelColor: AppColors.goldColor,
+                    unselectedLabelColor: AppColors.whiteColor,
+                    tabs: const [
+                      Tab(text: "My Bets"),
+                      Tab(text: "Joined Bets"),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
 
-          TabBar(
-            controller: _tabController,
-            indicatorColor: AppColors.goldColor,
-            labelColor: AppColors.goldColor,
-            unselectedLabelColor: AppColors.whiteColor,
-            tabs: const [
-              Tab(text: "My Bets"),
-              Tab(text: "Joined Bets"),
-            ],
-          ),
-
-          // 🔹 Tab Views
+          // TabBarView outside scrollable, fills remaining space
           Expanded(
+            flex: 2,
             child: TabBarView(
               controller: _tabController,
               children: [

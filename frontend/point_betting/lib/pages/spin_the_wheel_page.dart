@@ -55,7 +55,7 @@ class _SpinTheWheelPageState extends State<SpinTheWheelPage> {
     _controller.add(selected);
 
     Future.delayed(const Duration(seconds: 5), () async {
-      final multiplier = _multipliers[selected]["multiplier"] as double;
+      final multiplier = (_multipliers[selected]["multiplier"] as num).toDouble();
 
       // Multiply and round to int
       final newPoints = max(0, (points * multiplier).round());

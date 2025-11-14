@@ -354,7 +354,7 @@ class _MainPageState extends State<MainPage> {
           Expanded(child: _pages[_selectedIndex]),
 
           // Button to trigger the background task manually
-          Padding(
+          _selectedIndex == 0 ? Padding(
             padding: const EdgeInsets.all(16.0),
             child: ElevatedButton(
               onPressed: _triggerManualTask,
@@ -367,7 +367,7 @@ class _MainPageState extends State<MainPage> {
                 style: TextStyle(fontSize: 16),
               ),
             ),
-          ),
+          ) : Container(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
